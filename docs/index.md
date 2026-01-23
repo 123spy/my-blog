@@ -2,7 +2,7 @@
 layout: home
 
 hero:
-  name: "我的博客"
+  name: "SPY的博客"
   text: "Keep it Simple"
   tagline: "分享技术，记录生活"
   actions:

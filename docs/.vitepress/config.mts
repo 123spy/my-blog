@@ -68,7 +68,7 @@ function getSidebar() {
 
 // --- VitePress 配置 ---
 export default defineConfig({
-  title: "我的博客",
+  title: "SPY的博客",
   description: "基于 VitePress 构建",
 
   themeConfig: {
