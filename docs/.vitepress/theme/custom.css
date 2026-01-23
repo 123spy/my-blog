@@ -1,0 +1,85 @@
+/* docs/.vitepress/theme/custom.css */
+
+/* 基础设置 */
+.VPHome, .VPHero {
+  position: relative;
+  z-index: 10;
+}
+
+/* --- 第一层波浪（最高，颜色最深，最靠后） --- */
+.VPHome::before {
+  content: "";
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100vw;
+  /* 【更高】高度设为 85vh，几乎占满屏幕 */
+  height: 85vh; 
+  z-index: -3;
+  
+  /* 颜色：深靛蓝，但透明度只有 0.15，非常柔和 */
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 320'%3e%3cpath fill='%234F46E5' fill-opacity='0.15' d='M0,256L48,229.3C96,203,192,149,288,154.7C384,160,480,224,576,218.7C672,213,768,139,864,128C960,117,1056,171,1152,197.3C1248,224,1344,224,1392,224L1440,224L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z'%3e%3c/path%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: center bottom;
+  background-size: cover;
+  pointer-events: none;
+}
+
+/* --- 第二层波浪（中间高度，清透蓝） --- */
+.VPHome::after {
+  content: "";
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100vw;
+  /* 【更高】高度设为 65vh */
+  height: 65vh;
+  z-index: -2;
+  
+  /* 颜色：天蓝色，透明度 0.2 */
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 320'%3e%3cpath fill='%230EA5E9' fill-opacity='0.2' d='M0,64L48,80C96,96,192,128,288,128C384,128,480,96,576,106.7C672,117,768,171,864,197.3C960,224,1056,224,1152,202.7C1248,181,1344,139,1392,117.3L1440,96L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z'%3e%3c/path%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: center bottom;
+  background-size: cover;
+  pointer-events: none;
+}
+
+/* --- 第三层波浪（最矮，亮青色，提亮整体） --- */
+.VPHero::before {
+  content: "";
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100vw;
+  /* 【更高】高度设为 45vh */
+  height: 45vh;
+  z-index: -1;
+
+  /* 颜色：青色，透明度 0.25 */
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 320'%3e%3cpath fill='%2322d3ee' fill-opacity='0.25' d='M0,192L48,176C96,160,192,128,288,133.3C384,139,480,181,576,202.7C672,224,768,224,864,197.3C960,171,1056,117,1152,101.3C1248,85,1344,107,1392,117.3L1440,128L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z'%3e%3c/path%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: center bottom;
+  background-size: cover;
+  pointer-events: none;
+}
+
+/* --- 侧边栏切换逻辑 --- */
+
+/* 1. 当 hide-sidebar 被激活时，隐藏侧边栏 */
+body.hide-sidebar .VPSidebar {
+  display: none !important;
+}
+
+/* 2. 当 hide-sidebar 被激活时，让内容区域不再留左边距 */
+/* 仅在电脑端生效 (min-width: 960px) */
+@media (min-width: 960px) {
+  body.hide-sidebar .VPContent {
+    padding-left: 0 !important; /* 强制去除左侧留白 */
+  }
+  
+  /* 可选：让内容区域稍宽一点，看起来更像全屏阅读模式 */
+  body.hide-sidebar .VPContent .container {
+    max-width: 1200px !important; 
+    margin: 0 auto;
+  }
+}
