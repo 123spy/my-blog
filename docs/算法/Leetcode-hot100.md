@@ -8,7 +8,7 @@
 
 改进思想，如何能优化掉一层for循环使一层O(n)的查询，变为O(1)？把过去已经用过的数据（数值与下标）使用map存储起来，这样既能在O(1)级别的时间查询出来。
 
-```c++
+```
 class Solution {
 public:
     map<int, int> h;
@@ -38,7 +38,7 @@ string本质上可以看作是一个vector<char>，可以使用sort()函数对�
 
 例如：abc, acb, bac排序后都是abc。我们就知道是一组的。
 
-```c++
+```
 class Solution {
 public:
     map<string, vector<string>> h;
@@ -65,7 +65,7 @@ public:
 
 朴素思想，可以使用vector的sort + unique + erase处理后，使用一次for循环来判断，但是这个方法有一个问题，sort默认就是O(NlongN)的，已经超过O(N)的级别了。
 
-```c++
+```
 class Solution {
 public:
     int longestConsecutive(vector<int>& nums) {
@@ -103,7 +103,7 @@ public:
 
 所以虽然for里面嵌套着while看着像是O(N*N)级别的算法，但是由于只有序列的开头才会进入while，整体每个元素只被遍历了一遍，所以是O(N)级别的算法
 
-```c++
+```
 class Solution {
 public:
     map<int, int> h;
