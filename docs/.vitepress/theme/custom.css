@@ -1,5 +1,19 @@
 /* docs/.vitepress/theme/custom.css */
 
+:root {
+  /* 默认值通常是 272px，你可以改得更小 */
+  /* 这里我把它改成了 200px，你可以根据需要调整 */
+  --vp-sidebar-width: 200px; 
+}
+
+/* 针对移动端/平板 (小于 960px) 的特殊处理 */
+/* 这里的侧边栏是弹窗式的，通常建议保持默认，或者单独设置 */
+@media (max-width: 960px) {
+  :root {
+    --vp-sidebar-width: 272px; /* 手机端保持原样，不然太窄了字看不清 */
+  }
+}
+
 /* 基础设置 */
 .VPHome, .VPHero {
   position: relative;
