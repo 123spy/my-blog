@@ -129,3 +129,53 @@ public:
 };
 ```
 
+
+
+移动零
+
+```c++
+class Solution {
+public:
+    void moveZeroes(vector<int>& nums) {
+        int k = 0;
+        for (int i = 0; i < nums.size(); i ++ ) {
+            if(nums[i] != 0) {
+                nums[k] = nums[i];
+                k ++;
+            }
+        }
+        for (int i = k; i < nums.size(); i ++ ) nums[i] = 0;
+    }
+};
+```
+
+
+
+## 盛最多水的容器
+
+解题思路：对撞指针
+
+```c++
+class Solution {
+public:
+    int maxArea(vector<int>& height) {
+        int i = 0, j = height.size() - 1;
+
+        int res = 0;
+        while(i < j) {
+            res = max(res, (j - i) * min(height[i], height[j]));
+            if(height[i] >= height[j]) {
+                int idx = j;
+                while(i < idx && height[idx] <= height[j]) idx --;
+                j = idx;
+            } else {
+                int idx = i;
+                while(idx < j && height[idx] <= height[i]) idx ++;
+                i = idx;
+            }
+        }
+        return res;
+    }
+};
+```
+
