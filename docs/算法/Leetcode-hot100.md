@@ -179,3 +179,70 @@ public:
 };
 ```
 
+
+
+## 接雨水
+
+```c++
+class Solution {
+public:
+    int st[20010];
+    int su[20010];
+    unordered_set<int> s;
+    int trap(vector<int>& height) {
+        int n = height.size();
+        int maxV = height[0];
+        for (int i = 1; i < n; i ++ ) {
+            // cout << maxV << " " << height[i] << " " << (maxV > height[i]) << endl; 
+            if(maxV > height[i]) st[i] ++;
+            maxV = max(maxV, height[i]);
+        }
+
+        maxV = height[n - 1];
+        for (int i = n - 2; i >= 0; i -- ) {
+            // cout << maxV << " " << height[i] << " " << (maxV > height[i]) << endl; 
+            if(maxV > height[i]) {
+                st[i] ++;
+                if(st[i] == 2) {
+                    s.insert(i);
+                }
+            }
+            maxV = max(maxV, height[i]);
+        }
+
+        if(s.size() == 0) return 0;
+        // for (int i = 0; i < n; i ++ ) cout << st[i] << " ";
+        // cout << endl;
+        int res = 0;
+        for (auto item : s) {
+            if(su[item]) {
+                continue;
+            }
+            
+            int right = item;
+            int left = item;
+            while(s.count(right) && right < n) {
+                su[right] ++;
+                right ++;
+            }
+            
+            while(s.count(left) && left >= 0) {
+                su[left] ++;
+                left --;
+            }
+            int minHeight = min(height[left], height[right]);
+            int sum = 0;
+            // cout << left << "------" << right << endl;
+            for (int i = left + 1; i < right; i ++ ) {
+                // cout << minHeight << " " <<  height[i]  << " " << minHeight - height[i] << endl;
+                sum += (minHeight - height[i]);
+            }
+            // cout << sum << endl;
+            res += sum;
+            
+        }
+        return res;
+    }
+};
+```
+
