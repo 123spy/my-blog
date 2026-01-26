@@ -185,68 +185,69 @@ public:
 
 
 
-### 接雨水
+### [42. 接雨水](https://leetcode.cn/problems/trapping-rain-water/)
+
+朴素实现：
 
 ```c++
 class Solution {
 public:
-    int st[20010];
-    int su[20010];
+    int st[20010],su[20010];
     unordered_set<int> s;
     int trap(vector<int>& height) {
-        int n = height.size();
-        int maxV = height[0];
+        int n = height.size(), maxV = height[0];
         for (int i = 1; i < n; i ++ ) {
-            // cout << maxV << " " << height[i] << " " << (maxV > height[i]) << endl; 
             if(maxV > height[i]) st[i] ++;
             maxV = max(maxV, height[i]);
         }
-
         maxV = height[n - 1];
         for (int i = n - 2; i >= 0; i -- ) {
-            // cout << maxV << " " << height[i] << " " << (maxV > height[i]) << endl; 
             if(maxV > height[i]) {
                 st[i] ++;
-                if(st[i] == 2) {
-                    s.insert(i);
-                }
+                if(st[i] == 2) s.insert(i);
             }
             maxV = max(maxV, height[i]);
         }
-
         if(s.size() == 0) return 0;
-        // for (int i = 0; i < n; i ++ ) cout << st[i] << " ";
-        // cout << endl;
         int res = 0;
         for (auto item : s) {
-            if(su[item]) {
-                continue;
-            }
-            
-            int right = item;
-            int left = item;
-            while(s.count(right) && right < n) {
-                su[right] ++;
-                right ++;
-            }
-            
-            while(s.count(left) && left >= 0) {
-                su[left] ++;
-                left --;
-            }
+            if(su[item]) continue;
+            int right = item, left = item;
+            while(s.count(right) && right < n) su[right ++] ++;
+            while(s.count(left) && left >= 0) su[left --] ++;
             int minHeight = min(height[left], height[right]);
             int sum = 0;
-            // cout << left << "------" << right << endl;
-            for (int i = left + 1; i < right; i ++ ) {
-                // cout << minHeight << " " <<  height[i]  << " " << minHeight - height[i] << endl;
-                sum += (minHeight - height[i]);
-            }
-            // cout << sum << endl;
-            res += sum;
-            
+            for (int i = left + 1; i < right; i ++ ) sum += (minHeight - height[i]);
+            res += sum; 
         }
         return res;
     }
+};
+```
+
+双指针实现：
+
+```c++
+class Solution {
+public:
+int trap(vector<int>& height) {
+    int left = 0, right = height.size() - 1;
+    int l_max = 0, r_max = 0;
+    int res = 0;
+    
+    while (left < right) {
+        if (height[left] < height[right]) {
+            // 左边较低，水能接多少取决于左边的墙
+            height[left] >= l_max ? l_max = height[left] : res += (l_max - height[left]);
+            left++;
+        } else {
+            // 右边较低，水能接多少取决于右边的墙
+            height[right] >= r_max ? r_max = height[right] : res += (r_max - height[right]);
+            right--;
+        }
+    }
+    return res;
+}
 };
 ```
 
