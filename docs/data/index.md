@@ -10,13 +10,11 @@ hero:
   # 如果你有 logo 图片，放在 docs/data/public/logo.png
   # 如果没有，可以用下面的 emoji 代替
   # 或者用 emoji (二选一)
-   image:
-     src: 🌊
-  
+
   actions:
     - theme: brand
       text: 🚀 开始阅读
-      link: /notes/   # 这里改成你某个实际存在的文件夹，比如 /notes/
+      link: /Java/   # 这里改成你某个实际存在的文件夹，比如 /notes/
     - theme: alt
       text: 🐱 GitHub
       link: https://github.com/123spy
