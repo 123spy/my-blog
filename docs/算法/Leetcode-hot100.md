@@ -1,6 +1,8 @@
 # LeetCode 热题 100
 
-## 两数之和
+## 哈希
+
+### 两数之和
 
 解题思路：
 
@@ -30,7 +32,7 @@ public:
 
 
 
-## 字母异位词分组
+### 字母异位词分组
 
 解题思路：
 
@@ -59,7 +61,7 @@ public:
 
 
 
-## 最长连续序列
+### 最长连续序列
 
 解题思路：
 
@@ -131,7 +133,9 @@ public:
 
 
 
-移动零
+## 双指针
+
+### 移动零
 
 ```c++
 class Solution {
@@ -151,7 +155,7 @@ public:
 
 
 
-## 盛最多水的容器
+### 盛最多水的容器
 
 解题思路：对撞指针
 
@@ -181,7 +185,7 @@ public:
 
 
 
-## 接雨水
+### 接雨水
 
 ```c++
 class Solution {
@@ -243,6 +247,65 @@ public:
         }
         return res;
     }
+};
+```
+
+
+
+## 滑动窗口
+
+### [3. 无重复字符的最长子串](https://leetcode.cn/problems/longest-substring-without-repeating-characters/)
+
+```c++
+class Solution {
+public:
+    int st[50010];
+
+    int lengthOfLongestSubstring(string s) {
+        int res = 0;
+        for (int i = 0, j = 0; i < s.size(); i ++ ) {
+            st[s[i] - ' '] ++;
+            while(j < i && st[s[i] - ' '] != 1) {
+                st[s[j] - ' '] --;
+                j ++;
+            }
+            cout << j << " " << i << endl;
+            res = max(res, i - j + 1);
+        }
+        return res;
+    }
+};
+```
+
+### [438. 找到字符串中所有字母异位词](https://leetcode.cn/problems/find-all-anagrams-in-a-string/)
+
+```c++
+class Solution {
+public:
+    int st[30010];
+    unordered_map<int, int> h;
+    vector<int> findAnagrams(string s, string p) {
+        vector<int> res;
+        int n = s.size(), m = p.size();
+        for (int i = 0; i < m; i ++ ) h[p[i] - 'a'] ++;
+
+        for (int i = 0, j = 0; i < n; i ++ ) {
+            st[s[i] - 'a'] ++;
+            if(i - j + 1 > m)
+                while(i - j + 1 > m || st[s[i] - 'a'] > h[s[i] - 'a']) 
+                    st[s[j ++] - 'a'] --;
+
+            if(i - j + 1 == m) {
+                bool flag = true;
+                for (int k = 0; k < m; k ++ ) 
+                    if(st[p[k] - 'a'] != h[p[k] - 'a']) 
+                        flag = false;
+                if(flag) res.push_back(i - m + 1);
+            }
+        }
+
+        return res;
+    }   
 };
 ```
 
