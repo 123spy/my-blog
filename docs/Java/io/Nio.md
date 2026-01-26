@@ -111,7 +111,7 @@ NIO (transferTo)：不仅状态切换次数少，而且完全去掉了步骤2和
 
 
 
-## NIO性能神技：零拷贝 (Zero-Copy)
+## 零拷贝 (Zero-Copy)
 
 NIO的核心在于砍掉了中间不必要的“跨空间搬运”。
 
@@ -133,7 +133,7 @@ NIO的核心在于砍掉了中间不必要的“跨空间搬运”。
 
  
 
-## NIO “三剑客”：Buffer, Channel, Selector
+## Buffer, Channel, Selector
 
 ### Buffer (缓冲区)
 

@@ -547,11 +547,3 @@ public class PrintWriterExample {
 核心点：DataOutputStream 写入的是数据的二进制原始值。如果你 writeInt(97)，你用记事本打开文件，看到的是一个二进制乱码（或者 ASCII 的 'a'）。
 
 核心点：PrintStream写入的是数据的字符串形式。如果你print(97)，它内部会把97转成字符 '9' 和 '7'，你打开记事本看到的就是肉眼可见的 97。
-
-
-
-## NIO
-
-## AIO
-
-## Netty
