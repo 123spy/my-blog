@@ -374,3 +374,79 @@ public:
 };
 ```
 
+## 栈
+
+### [20. 有效的括号](https://leetcode.cn/problems/valid-parentheses/)
+
+```c++
+class Solution {
+public:
+    bool isValid(string s) {
+        stack<char> sta;
+
+        for (int i = 0; i < s.size(); i++) {
+            if(s[i] == '[' || s[i] == '{' || s[i] == '(') {
+                sta.push(s[i]);
+            }
+            else {
+                // 如果遇到右括号但栈为空，直接返回false
+                if(sta.empty()) {
+                    return false;
+                }
+                
+                // 检查栈顶是否与当前右括号匹配
+                char topChar = sta.top();
+                if((s[i] == ']' && topChar == '[') ||
+                   (s[i] == '}' && topChar == '{') ||
+                   (s[i] == ')' && topChar == '(')) {
+                    sta.pop();  // 匹配成功，弹出
+                } else {
+                    return false;  // 不匹配
+                }
+            }
+        }
+
+        return sta.empty();  // 栈应该为空
+    }
+};
+```
+
+
+
+## 技巧
+
+### [136. 只出现一次的数字](https://leetcode.cn/problems/single-number/)
+
+解题思路：两个相同的数字进行**异或**操作时会变为0.
+
+```c++
+class Solution {
+public:
+    int singleNumber(vector<int>& nums) {
+        sort(nums.begin(), nums.end());
+        int res = 0;
+        for (int i = 0; i < nums.size(); i ++ ) res ^= nums[i];
+        return res;
+    }
+};
+```
+
+### [169. 多数元素](https://leetcode.cn/problems/majority-element/)
+
+解题思路：记录下出现的元素的数量即可。
+
+```c++
+class Solution {
+public:
+    int majorityElement(vector<int>& nums) {
+        int n = nums.size();
+        unordered_map<int, int> h;
+        for (int i = 0; i < n; i ++ ) {
+            h[nums[i]] ++;
+            if(h[nums[i]] > (n / 2)) return nums[i];
+        }
+        return 0;
+    }
+};
+```
+
