@@ -43,9 +43,7 @@ function getSidebar() {
   dirs.forEach((dir) => {
     const title = dir.charAt(0).toUpperCase() + dir.slice(1);
     sidebarOptions.push({
-      // 【修改点 1】核心：文档根目录变成了 'docs/data'
       documentRootPath: 'docs/data',
-      
       scanStartPath: dir,
       resolvePath: `/${dir}/`,
       
@@ -53,11 +51,16 @@ function getSidebar() {
       hyphenToSpace: true,
       capitalizeFirst: true,
       
-      // 【优化】为了更好的折叠体验，建议使用 rootGroupText
-      // 这会给每个分类加一个带箭头的总标题
-      rootGroupText: title, 
-      rootGroupLink: `/${dir}/`,
+      rootGroupText: title,
       
+      // 【修改点 1】强制指向 index，解决 /Java/Java/ 找不到文件的问题
+      // 加上 /index 后，VitePress 就能精准定位到那个文件，而不会错误地拼路径
+      rootGroupLink: `/${dir}/index`,
+      
+      // 【修改点 2】排除 index.md
+      // 因为我们已经把 index.md 绑在标题上了，就不需要它出现在子菜单里了
+      excludePattern: ['index.md', 'README.md'],
+
       collapsed: false, 
       collapseDepth: 2
     })
