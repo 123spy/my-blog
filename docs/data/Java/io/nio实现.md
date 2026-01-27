@@ -151,7 +151,7 @@ Selector selector = Selector.open();
 socketChannel.register(selector, SelectionKey.OP_READ); // 监听读事件
 ```
 
- 
+  
 
 ## Selector（选择器）
 
