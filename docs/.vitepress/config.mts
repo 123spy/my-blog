@@ -41,7 +41,9 @@ function getSidebar() {
   const sidebarOptions: any[] = []
 
   dirs.forEach((dir) => {
+    // 这里的 title 变量其实用不到了，不过留着也不影响
     const title = dir.charAt(0).toUpperCase() + dir.slice(1);
+    
     sidebarOptions.push({
       documentRootPath: 'docs/data',
       scanStartPath: dir,
@@ -51,18 +53,17 @@ function getSidebar() {
       hyphenToSpace: true,
       capitalizeFirst: true,
       
-      rootGroupText: title,
+      // 【关键修改】
+      // 删掉了 rootGroupText 和 rootGroupLink
+      // 插件就不会再给你的列表套一个“Java”或“算法”的大标题了
+      // 而是直接把里面的文章列出来
       
-      // 【修改点 1】强制指向 index，解决 /Java/Java/ 找不到文件的问题
-      // 加上 /index 后，VitePress 就能精准定位到那个文件，而不会错误地拼路径
-      rootGroupLink: `/${dir}/index`,
-      
-      // 【修改点 2】排除 index.md
-      // 因为我们已经把 index.md 绑在标题上了，就不需要它出现在子菜单里了
-      excludePattern: ['index.md', 'README.md'],
+      // 如果你希望它是扁平的（直接显示文件），保持默认即可
+      // 如果侧边栏里还有子文件夹，想要折叠子文件夹，保留下面这行：
+      collapseDepth: 2,
 
-      collapsed: false, 
-      collapseDepth: 2
+      // 依然建议排除 index.md，否则它会出现在列表里
+      excludePattern: ['index.md', 'README.md'],
     })
   })
 
