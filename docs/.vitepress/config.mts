@@ -38,39 +38,35 @@ function getNav() {
 
 // --- 3. 自动生成 Sidebar (微调路径) ---
 function getSidebar() {
-  const sidebar = {}
+  const sidebarOptions: any[] = []
 
   dirs.forEach((dir) => {
     const title = dir.charAt(0).toUpperCase() + dir.slice(1);
-    
-    // 生成子菜单项
-    const items = generateSidebar({
+    sidebarOptions.push({
       documentRootPath: 'docs/data',
       scanStartPath: dir,
-      // resolvePath: `/${dir}/`, // 这行删掉，不需要了
+      resolvePath: `/${dir}/`,
       
-      // 【关键修复】手动加上路径前缀！
-      // 这样插件生成的链接就会是 "/Java/文件" 而不是 "/文件"
-      basePath: `/${dir}/`, 
-
       useTitleFromFileHeading: true,
       hyphenToSpace: true,
-      excludePattern: ['index.md', 'README.md'], 
-    })
+      capitalizeFirst: true,
+      
+      rootGroupText: title,
+      
+      // 【修改点 1】强制指向 index，解决 /Java/Java/ 找不到文件的问题
+      // 加上 /index 后，VitePress 就能精准定位到那个文件，而不会错误地拼路径
+      rootGroupLink: `/${dir}/index`,
+      
+      // 【修改点 2】排除 index.md
+      // 因为我们已经把 index.md 绑在标题上了，就不需要它出现在子菜单里了
+      excludePattern: ['index.md', 'README.md'],
 
-    // 组装侧边栏
-    sidebar[`/${dir}/`] = [
-      {
-        text: title,
-        // 强制指向该目录下的 index 文件
-        link: `/${dir}/`, 
-        items: items,
-        collapsed: false
-      }
-    ]
+      collapsed: false, 
+      collapseDepth: 2
+    })
   })
 
-  return sidebar
+  return generateSidebar(sidebarOptions)
 }
 
 // --- VitePress 配置 ---
