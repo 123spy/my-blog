@@ -103,6 +103,35 @@ Channel是双向的，可以同时支持读和写操作，而流只能单向操�
 
 
 
+### Channel相关问题
+
+Q：如果说客户端这边正常退出或者非正常退出了，服务端如何处理那？
+
+A：需要在代码里进行以下操作：
+
+- 检测断开：调用 channel.read(buffer)。
+  - 如果返回 -1：说明客户端正常断开连接（调用了 close()）。
+  - 如果抛出 IOException：说明客户端异常崩溃（直接杀掉了进程）。
+
+- 取消注册：调用 key.cancel()。告诉 Selector：“这个插签我不要了，别再监控它了”。
+
+- 关闭通道：调用 channel.close()。彻底释放操作系统的文件句柄资源。
+
+
+
+Q：如果我主动发送-1那，是否会把连接断开？
+
+A：在Java NIO中，channel.read(buffer) 返回的-1不是从网络上读到的数据内容，而是底层操作系统给出的一个状态信号。
+
+- 数据内容：你通过网络发送的任何内容（无论是 0、1、还是二进制的 -1），都会被装进 ByteBuffer 里。
+- 返回值：read() 方法的返回值代表的是**“读到了多少个字节”**。
+  - 返回 10：代表读到了 10 个字节，存进了 Buffer。
+  - 返回 0：代表目前没数据可读（非阻塞模式下常见）。
+  - 返回 -1：这是一个特殊的流结束符（EOF, End of File）。
+- 除非关闭了Socket通道，否则对方的read()永远不会返回-1。
+
+
+
 ### Channel 的工作原理
 
 #### 双向性
@@ -119,6 +148,8 @@ int bytesRead = channel.read(buffer);
 // 写操作：从 Buffer 写入数据到 Channel
 int bytesWritten = channel.write(buffer);
 ```
+
+
 
 
 
@@ -173,8 +204,6 @@ Selector 的核心思想是通过事件驱动模型，将I/O操作从线程中�
 3. 事件处理（Event Handling）
    - 遍历就绪事件集合中的SelectionKey，根据事件类型（如 isReadable()、isWritable()）执行对应的处理逻辑。
    - :full_moon:处理完成后，需手动移除已处理的SelectionKey，避免重复处理。
-
-
 
 
 
