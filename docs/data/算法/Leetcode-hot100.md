@@ -316,6 +316,8 @@ public:
 
 ### [239. 滑动窗口最大值](https://leetcode.cn/problems/sliding-window-maximum/)
 
+常规解法
+
 ```c++
 class Solution {
 public:
@@ -347,6 +349,27 @@ public:
     // 单调队列的头弹出
     void pop() {
         start ++;
+    }
+};
+```
+
+priority_queue方法
+
+```c++
+class Solution {
+public:
+    vector<int> maxSlidingWindow(vector<int>& nums, int k) {
+        int n = nums.size();
+        vector<int> res; 
+        priority_queue<pair<int, int>> q;
+        for (int i = 0; i < n; i ++ ) {
+            q.push({nums[i], i});
+            if(i < k - 1) continue;
+
+            while(q.top().second < i - k + 1) q.pop();
+            res.push_back(q.top().first);
+        }
+        return res;
     }
 };
 ```
