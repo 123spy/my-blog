@@ -3,8 +3,7 @@ import { generateSidebar } from 'vitepress-sidebar'
 import fs from 'node:fs'
 import path from 'node:path'
 
-// --- 路径修正 ---
-// 指向 docs/data 目录
+// --- 路径配置 ---
 const contentDir = path.resolve(__dirname, '../data')
 
 // 安全检查
@@ -12,7 +11,7 @@ if (!fs.existsSync(contentDir)) {
   console.warn('注意：未找到 docs/data 目录。')
 }
 
-// --- 1. 获取所有顶级文件夹列表 ---
+// 获取顶级文件夹列表
 const dirs = fs.existsSync(contentDir) 
   ? fs.readdirSync(contentDir).filter((file) => {
       const filePath = path.join(contentDir, file)
@@ -20,47 +19,77 @@ const dirs = fs.existsSync(contentDir)
     })
   : []
 
-// --- 2. 【核心修改】智能 Nav 生成 ---
+// --- 【核心新增】递归查找第一个 MD 文件的函数 ---
+function findFirstMdRecursive(dirPath: string): string | null {
+  if (!fs.existsSync(dirPath)) return null
+  
+  // 获取当前目录下所有项，并排序（保证每次顺序一致）
+  const items = fs.readdirSync(dirPath).sort()
+
+  // 1. 优先级最高：检查当前目录有没有 index.md
+  if (items.includes('index.md')) {
+    return path.join(dirPath, 'index.md')
+  }
+
+  // 2. 优先级第二：检查当前目录有没有其他 .md 文件
+  const firstMd = items.find(file => file.endsWith('.md') && !file.startsWith('.'))
+  if (firstMd) {
+    return path.join(dirPath, firstMd)
+  }
+
+  // 3. 优先级第三：递归查找子目录
+  // 过滤出所有子文件夹
+  const subDirs = items.filter(item => {
+    const fullPath = path.join(dirPath, item)
+    return fs.statSync(fullPath).isDirectory() && !['.vitepress', 'public'].includes(item)
+  })
+
+  // 遍历子文件夹，看谁里面藏着 md 文件
+  for (const subDir of subDirs) {
+    const found = findFirstMdRecursive(path.join(dirPath, subDir))
+    if (found) {
+      return found // 找到了！直接返回，不再找后面的文件夹
+    }
+  }
+
+  // 这里的都找完了还没找到
+  return null
+}
+
+// --- 2. 智能 Nav 生成 ---
 function getNav() {
   const navLinks: any[] = []
   navLinks.push({ text: '首页', link: '/' })
   
   dirs.forEach((dir) => {
-    const dirPath = path.join(contentDir, dir)
-    let finalLink = `/${dir}/` // 默认链接（后备方案）
+    const dirAbsPath = path.join(contentDir, dir)
+    let finalLink = `/${dir}/` // 默认保底链接
 
-    // 只有当文件夹存在时才进行检测
-    if (fs.existsSync(dirPath)) {
-      const files = fs.readdirSync(dirPath)
+    // 调用递归函数查找
+    const foundFilePath = findFirstMdRecursive(dirAbsPath)
 
-      // 策略 A: 优先查找 index.md
-      if (files.includes('index.md')) {
-        finalLink = `/${dir}/`
-      } 
-      // 策略 B: 如果没有 index.md，查找第一个 .md 文件
-      else {
-        // 过滤出 .md 文件，且排除以点开头的隐藏文件
-        const firstMdFile = files.find(file => file.endsWith('.md') && !file.startsWith('.'))
-        
-        if (firstMdFile) {
-          // 去掉后缀名 .md，拼接成完整路径
-          // 比如找到了 'Thread.md'，链接变成 '/Java/Thread'
-          const fileName = firstMdFile.replace(/\.md$/, '')
-          finalLink = `/${dir}/${fileName}`
-        }
-      }
+    if (foundFilePath) {
+      // 如果找到了文件，需要把“系统绝对路径”转换成“网页相对路径”
+      // 1. 算出相对路径： D:\...\data\Java\Base\Thread.md -> Java\Base\Thread.md
+      const relativePath = path.relative(contentDir, foundFilePath)
+      
+      // 2. 统一分隔符：Windows 是 \，网页需要 /
+      const webPath = relativePath.split(path.sep).join('/')
+      
+      // 3. 去掉 .md 后缀，并加上开头斜杠 -> /Java/Base/Thread
+      finalLink = '/' + webPath.replace(/\.md$/, '')
     }
 
     navLinks.push({
       text: dir.charAt(0).toUpperCase() + dir.slice(1),
-      link: finalLink,           // <--- 这里使用了我们计算出来的智能链接
-      activeMatch: `/${dir}/`    // <--- 保持高亮匹配逻辑不变（只要在这个目录下都高亮）
+      link: finalLink,
+      activeMatch: `/${dir}/`
     })
   })
   return navLinks
 }
 
-// --- 3. Sidebar (保持你刚才要求的：去掉文件夹标题) ---
+// --- 3. Sidebar (保持原样：去文件夹标题) ---
 function getSidebar() {
   const sidebarOptions: any[] = []
 
@@ -69,17 +98,13 @@ function getSidebar() {
       documentRootPath: 'docs/data',
       scanStartPath: dir,
       resolvePath: `/${dir}/`,
-      
       useTitleFromFileHeading: true,
       hyphenToSpace: true,
       capitalizeFirst: true,
       
-      // 【保持空着】不要加 rootGroupText，这样就不会显示左侧的大标题
+      // 不写 rootGroupText，保持左侧清爽
       
-      // 依然建议折叠子文件夹
       collapseDepth: 2,
-      
-      // 排除掉 index.md，防止侧边栏重复显示
       excludePattern: ['index.md', 'README.md'],
     })
   })
@@ -92,13 +117,11 @@ export default defineConfig({
   title: "SPY的博客",
   description: "基于 VitePress 构建",
   
-  // 源代码目录
   srcDir: 'data',
 
   themeConfig: {
     search: { provider: 'local' },
     
-    // 右侧大纲设置
     outline: {
       level: [2, 3], 
       label: ' ' 
