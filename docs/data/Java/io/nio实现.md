@@ -153,6 +153,8 @@ socketChannel.register(selector, SelectionKey.OP_READ); // 监听读事件
 
 
 
+
+
 ## Selector（选择器）
 
 Selector（选择器） 是 Java NIO的核心组件之一，用于实现I/O多路复用。它允许一个线程同时监控多个通道（Channel）的I/O事件（如可读、可写、连接、接受连接），从而在事件发生时进行响应。这种机制显著提高了系统的并发性能和资源利用率。

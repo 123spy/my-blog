@@ -38,35 +38,37 @@ function getNav() {
 
 // --- 3. 自动生成 Sidebar (微调路径) ---
 function getSidebar() {
-  const sidebarOptions: any[] = []
+  // 1. 定义一个对象，而不是数组
+  const sidebar = {}
 
   dirs.forEach((dir) => {
     const title = dir.charAt(0).toUpperCase() + dir.slice(1);
-    sidebarOptions.push({
+    
+    // 2. 让插件只负责扫描“子文件列表”
+    // 注意：这里我们不再传 rootGroupText 等参数，因为我们要在下面手动加
+    const items = generateSidebar({
       documentRootPath: 'docs/data',
       scanStartPath: dir,
       resolvePath: `/${dir}/`,
-      
       useTitleFromFileHeading: true,
       hyphenToSpace: true,
-      capitalizeFirst: true,
-      
-      rootGroupText: title,
-      
-      // 【修改点 1】强制指向 index，解决 /Java/Java/ 找不到文件的问题
-      // 加上 /index 后，VitePress 就能精准定位到那个文件，而不会错误地拼路径
-      rootGroupLink: `/${dir}/index`,
-      
-      // 【修改点 2】排除 index.md
-      // 因为我们已经把 index.md 绑在标题上了，就不需要它出现在子菜单里了
-      excludePattern: ['index.md', 'README.md'],
-
-      collapsed: false, 
-      collapseDepth: 2
+      // 排除 index.md，因为它将作为父级标题的点击链接
+      excludePattern: ['index.md', 'README.md'], 
     })
+
+    // 3. 手动组装侧边栏结构
+    // 这种写法下，link 是我们硬编码的字符串，插件干涉不了，绝对不会错
+    sidebar[`/${dir}/`] = [
+      {
+        text: title,           // 父级标题
+        link: `/${dir}/`,      // 【关键】强制指定为 /Java/ 这样的绝对路径
+        items: items,          // 放入插件扫出来的子文件
+        collapsed: false
+      }
+    ]
   })
 
-  return generateSidebar(sidebarOptions)
+  return sidebar
 }
 
 // --- VitePress 配置 ---
