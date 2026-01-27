@@ -310,3 +310,44 @@ public:
 };
 ```
 
+
+
+## 子串
+
+### [239. 滑动窗口最大值](https://leetcode.cn/problems/sliding-window-maximum/)
+
+```c++
+class Solution {
+public:
+    int a[100010]; // 存储的是下标
+    int start = 0, end = -1;
+    vector<int> copy, res;
+    vector<int> maxSlidingWindow(vector<int>& nums, int k) {
+        int n = nums.size();
+        copy = nums;
+        for (int i = 0; i < n; i ++ ) {
+            push(i); // 给的是下标
+            if(i < k - 1) continue;
+
+            // 获取这个单调队列的头，看看是不是超出界限了
+            while(end >= start && a[start] < i - k + 1) pop(); // 弹出队头
+            
+            // cout << start << " " << end << endl;
+            res.push_back(nums[a[start]]);
+        }
+        return res;
+    }
+
+    // 单调队列的插入
+    void push(int idx) {
+        while(end >= start && copy[a[end]] <= copy[idx]) end --;
+        a[++ end] = idx;
+    }
+
+    // 单调队列的头弹出
+    void pop() {
+        start ++;
+    }
+};
+```
+
