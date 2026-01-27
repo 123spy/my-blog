@@ -38,31 +38,33 @@ function getNav() {
 
 // --- 3. 自动生成 Sidebar (微调路径) ---
 function getSidebar() {
-  // 1. 定义一个对象，而不是数组
   const sidebar = {}
 
   dirs.forEach((dir) => {
     const title = dir.charAt(0).toUpperCase() + dir.slice(1);
     
-    // 2. 让插件只负责扫描“子文件列表”
-    // 注意：这里我们不再传 rootGroupText 等参数，因为我们要在下面手动加
+    // 生成子菜单项
     const items = generateSidebar({
       documentRootPath: 'docs/data',
       scanStartPath: dir,
-      resolvePath: `/${dir}/`,
+      // resolvePath: `/${dir}/`, // 这行删掉，不需要了
+      
+      // 【关键修复】手动加上路径前缀！
+      // 这样插件生成的链接就会是 "/Java/文件" 而不是 "/文件"
+      basePath: `/${dir}/`, 
+
       useTitleFromFileHeading: true,
       hyphenToSpace: true,
-      // 排除 index.md，因为它将作为父级标题的点击链接
       excludePattern: ['index.md', 'README.md'], 
     })
 
-    // 3. 手动组装侧边栏结构
-    // 这种写法下，link 是我们硬编码的字符串，插件干涉不了，绝对不会错
+    // 组装侧边栏
     sidebar[`/${dir}/`] = [
       {
-        text: title,           // 父级标题
-        link: `/${dir}/`,      // 【关键】强制指定为 /Java/ 这样的绝对路径
-        items: items,          // 放入插件扫出来的子文件
+        text: title,
+        // 强制指向该目录下的 index 文件
+        link: `/${dir}/`, 
+        items: items,
         collapsed: false
       }
     ]
