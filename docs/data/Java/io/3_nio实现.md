@@ -23,10 +23,16 @@ Channel提供从文件、网络读取数据的渠道，但是读取或写入的�
 - allocateDirect(int capacity)：分配一个直接缓冲区（堆外内存，适合频繁 I/O 操作）。
 - wrap(byte[] array)：将现有数组包装为缓冲区（仅适用于ByteBuffer 等基本类型）。
 - put(byte b)：相对写入：向缓冲区写入单个字节（position 自动递增）。
+- putInt()：放入一个int字节的元素，因为在ByteBuffer中，是一个字节一个字节存储的。这个函数会直接放入出4个字节。
 - get()：相对读取：从 position 读取一个字节（position 自动递增）。
+- getInt()：获取一个int字节的元素，因为在ByteBuffer中，是一个字节一个字节存储的。这个函数会直接读取出4个字节并转换成为int。
 - flip()：切换到读模式：将 limit 设为当前 position，position 重置为 0。
 - clear()：清空缓冲区：将 position 设为 0，limit 设为 capacity。
 - rewind()：重置读取位置：将 position 设为 0，保留 limit 值。
+- remaining()：剩余可操作的元素，也就是求size()。
+- mark()：使用mark记录当前的position位置，mark=position 
+- reset()：令position回溯，position=mark
+- compact()：令数组中的前方具有空位的内容向前移动。比如：在一个队伍中排队，此时你前面的人已经都走了，那么现在需要你和你身后的人们向前移动。
 
 ### Buffer的属性
 
@@ -100,6 +106,9 @@ Channel是双向的，可以同时支持读和写操作，而流只能单向操�
 - isOpen()：检查Channel是否处于打开状态。
 - configureBlocking(boolean block)：设置 Channel 的阻塞模式（true 表示阻塞，false 表示非阻塞）。
 - register(Selector sel, int ops)：将 Channel 注册到 Selector，监听指定事件（如 OP_READ）。
+- transferTo(long position, long count, WritableByteChannel target)：从当前通道传输到目标通道
+- transferFrom(ReadableByteChannel src, long position, long count)：从源通道传输到当前通道
+
 
 
 
