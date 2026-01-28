@@ -413,6 +413,134 @@ public:
 
 
 
+## 动态规划
+
+### [70. 爬楼梯](https://leetcode.cn/problems/climbing-stairs/)
+
+```c++
+class Solution {
+public:
+    int dp[50];
+    int climbStairs(int n) {
+        dp[1] = 1;
+        dp[2] = 2;
+
+        for (int i = 3; i <= n; i ++ ) {
+            dp[i] = dp[i - 1] + dp[i - 2];
+        }
+
+        return dp[n];
+    }
+};
+```
+
+### [118. 杨辉三角](https://leetcode.cn/problems/pascals-triangle/)
+
+```c++
+class Solution {
+public:
+    int dp[40][40];
+    vector<vector<int>> generate(int numRows) {
+        vector<vector<int>> res;
+        dp[1][1] = 1;
+        vector<int> first;
+        first.push_back(1);
+        res.push_back(first);
+        
+        for (int i = 2; i <= numRows; i ++ ) {
+            vector<int> tmp;
+            for (int j = 1; j <= i; j ++ ) {
+                dp[i][j] = dp[i - 1][j - 1] + dp[i - 1][j];
+                tmp.push_back(dp[i][j]);
+            }
+            res.push_back(tmp);
+        }
+        return res;
+    }
+};
+```
+
+### [198. 打家劫舍](https://leetcode.cn/problems/house-robber/)
+
+```c++
+class Solution {
+public:
+    int dp[120];
+
+    int rob(vector<int>& nums) {
+        dp[0] = nums[0];
+
+        for (int i = 1; i < nums.size(); i ++ ) {
+            if(i == 1) {
+                dp[i] = max(nums[0], nums[1]);
+            } else 
+            dp[i] = max(dp[i - 1], dp[i - 2] + nums[i]);
+        }
+
+        return dp[nums.size() - 1];
+    }
+};
+```
+
+### [279. 完全平方数](https://leetcode.cn/problems/perfect-squares/)
+
+```c++
+class Solution {
+public:
+    vector<int> nums;
+    int dp[10010];
+
+    int numSquares(int n) {
+        for (int i = 1; i * i <= n; i ++ ) nums.push_back(i * i);
+        
+        dp[0] = 0; dp[1] = 1;
+
+        for (int i = 2; i <= n; i ++ ) {
+            int minV = INT_MAX;
+            for(int j = 0; j < nums.size(); j ++ )
+                if(i - nums[j] >= 0) minV = min(minV, dp[i - nums[j]]);     
+            dp[i] = minV + 1;
+        }
+
+        return dp[n];
+    }
+};
+```
+
+### [322. 零钱兑换](https://leetcode.cn/problems/coin-change/)
+
+```c++
+class Solution {
+public:
+
+    int dp[10010];
+
+    int coinChange(vector<int>& coins, int amount) {
+        if(amount == 0) return 0;
+        
+        int num = 0;
+        for (int i = 0; i < coins.size(); i ++ ) {
+            if(coins[i] <= amount) {
+                dp[coins[i]] = 1;
+                num ++;
+            }
+        }
+        if(num <= 0) return -1;
+        for (int i = 1; i <= amount; i ++ ) {
+            int minV = INT_MAX - 1;
+            for (int j = 0; j < coins.size(); j ++ )
+                if(i - coins[j] >= 0) minV = min(minV, dp[i - coins[j]]);
+            dp[i] = minV + 1;
+        }
+
+        if(dp[amount] == INT_MAX) return -1;
+        return dp[amount];
+    }
+};
+```
+
+
+
 ## 技巧
 
 ### [136. 只出现一次的数字](https://leetcode.cn/problems/single-number/)
