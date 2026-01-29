@@ -374,6 +374,106 @@ public:
 };
 ```
 
+## 普通数组
+
+## 矩阵
+
+## 链表
+
+## 二叉树
+
+### [94. 二叉树的中序遍历](https://leetcode.cn/problems/binary-tree-inorder-traversal/)
+
+```c++
+/**
+ * Definition for a binary tree node.
+ * struct TreeNode {
+ *     int val;
+ *     TreeNode *left;
+ *     TreeNode *right;
+ *     TreeNode() : val(0), left(nullptr), right(nullptr) {}
+ *     TreeNode(int x) : val(x), left(nullptr), right(nullptr) {}
+ *     TreeNode(int x, TreeNode *left, TreeNode *right) : val(x), left(left), right(right) {}
+ * };
+ */
+class Solution {
+public:
+    vector<int> res;
+
+    vector<int> inorderTraversal(TreeNode* root) {
+        dfs(root);
+        return res;
+    }
+
+    void dfs(TreeNode* root) {
+        if(root == nullptr) return ;
+        dfs(root->left);
+        res.push_back(root->val);
+        dfs(root->right);
+    }
+};
+```
+
+### [104. 二叉树的最大深度](https://leetcode.cn/problems/maximum-depth-of-binary-tree/)
+
+```c++
+/**
+ * Definition for a binary tree node.
+ * struct TreeNode {
+ *     int val;
+ *     TreeNode *left;
+ *     TreeNode *right;
+ *     TreeNode() : val(0), left(nullptr), right(nullptr) {}
+ *     TreeNode(int x) : val(x), left(nullptr), right(nullptr) {}
+ *     TreeNode(int x, TreeNode *left, TreeNode *right) : val(x), left(left), right(right) {}
+ * };
+ */
+class Solution {
+public:
+    int maxDepth(TreeNode* root) {
+        return dfs(root);
+    }
+
+    int dfs(TreeNode* root) {
+        if(root == nullptr) return 0;
+        return max(dfs(root -> left), dfs(root -> right)) + 1;
+    }
+};
+```
+
+### [226. 翻转二叉树](https://leetcode.cn/problems/invert-binary-tree/)
+
+```c++
+/**
+ * Definition for a binary tree node.
+ * struct TreeNode {
+ *     int val;
+ *     TreeNode *left;
+ *     TreeNode *right;
+ *     TreeNode() : val(0), left(nullptr), right(nullptr) {}
+ *     TreeNode(int x) : val(x), left(nullptr), right(nullptr) {}
+ *     TreeNode(int x, TreeNode *left, TreeNode *right) : val(x), left(left), right(right) {}
+ * };
+ */
+class Solution {
+public:
+    TreeNode* invertTree(TreeNode* root) {
+        dfs(root);
+        return root;
+    }
+
+    void dfs(TreeNode* root) {
+        if(root == nullptr) return ;
+        TreeNode* tmp = root->right;
+        root->right = root->left;
+        root->left = tmp;
+        dfs(root->right); dfs(root->left);
+    }
+};
+```
+
+
+
 ## 栈
 
 ### [20. 有效的括号](https://leetcode.cn/problems/valid-parentheses/)
@@ -537,6 +637,55 @@ public:
 
         if(dp[amount] == INT_MAX) return -1;
         return dp[amount];
+    }
+};
+```
+
+### [300. 最长递增子序列](https://leetcode.cn/problems/longest-increasing-subsequence/)
+
+```c++
+class Solution {
+public:
+    int dp[2510];
+    int lengthOfLIS(vector<int>& nums) {
+        dp[0] = 1;
+        int res = 1;
+        for (int i = 1; i < nums.size(); i ++ ) {
+            int maxV = 0;
+            for (int j = i - 1; j >= 0; j -- ) {
+                if(nums[j] < nums[i]) {
+                    maxV = max(maxV, dp[j]);
+                }
+            }
+            dp[i] = maxV + 1;
+            res = max(res, dp[i]);
+        }
+
+        for (int i = 0; i < nums.size(); i ++ ) cout << dp[i] << " ";
+        return res;
+    }
+};
+```
+
+### [152. 乘积最大子数组](https://leetcode.cn/problems/maximum-product-subarray/)
+
+```c++
+class Solution {
+public:
+    int dp[20010];
+    int maxProduct(vector<int>& nums) {
+        dp[0] = nums[0];
+        int res = dp[0];
+        for (int i = 1; i < nums.size(); i ++ ) {
+            int tmp = nums[i], maxV = nums[i];
+            for (int j = i - 1; j >= 0; j -- ) {
+                tmp *= nums[j];
+                maxV = max(maxV, tmp);
+            }
+            dp[i] = maxV;
+            res = max(res, dp[i]);
+        }
+        return res;
     }
 };
 ```
