@@ -1,37 +1,70 @@
 /* docs/.vitepress/theme/custom.css */
 
+/* =========================================================
+   1. 全局布局变量调整 (左边栏宽度)
+   ========================================================= */
 :root {
-  /* 默认值通常是 272px，你可以改得更小 */
-  /* 这里我把它改成了 200px，你可以根据需要调整 */
+  /* 【左边栏】宽度设置为 200px (原值约 272px) */
   --vp-sidebar-width: 200px; 
+  
+  /* 【整体布局】让大屏幕利用率更高，允许内容铺得更开 */
+  --vp-layout-max-width: 1600px;
 }
 
 /* 针对移动端/平板 (小于 960px) 的特殊处理 */
-/* 这里的侧边栏是弹窗式的，通常建议保持默认，或者单独设置 */
 @media (max-width: 960px) {
   :root {
-    --vp-sidebar-width: 272px; /* 手机端保持原样，不然太窄了字看不清 */
+    --vp-sidebar-width: 272px; /* 手机端恢复默认，否则弹窗太窄 */
   }
 }
 
-/* 基础设置 */
+
+/* =========================================================
+   2. 【核心修改】中间变宽 & 右边变窄 (仅在电脑端生效)
+   ========================================================= */
+@media (min-width: 1280px) {
+  
+  /* --- 【中间内容】变宽 --- */
+  .VPDoc .content-container {
+    /* 默认是 688px，这里改为 960px，你可以根据喜好改成 1000px 或更大 */
+    max-width: 960px !important; 
+  }
+  
+  /* --- 【右侧边栏】变窄 --- */
+  .VPDocAside {
+    /* 强制宽度 200px */
+    width: 200px !important;
+    min-width: 200px !important;
+    
+    /* 减少右侧边栏与中间内容的间距 */
+    padding-left: 16px !important;
+  }
+  
+  /* 调整右侧边栏容器，防止它占位太大 */
+  .VPDocAsideOutline {
+    width: 200px !important;
+    min-width: 200px !important;
+  }
+}
+
+
+/* =========================================================
+   3. 波浪背景动画 (保持不变)
+   ========================================================= */
 .VPHome, .VPHero {
   position: relative;
   z-index: 10;
 }
 
-/* --- 第一层波浪（最高，颜色最深，最靠后） --- */
+/* 第一层波浪 */
 .VPHome::before {
   content: "";
   position: fixed;
   bottom: 0;
   left: 0;
   width: 100vw;
-  /* 【更高】高度设为 85vh，几乎占满屏幕 */
   height: 85vh; 
   z-index: -3;
-  
-  /* 颜色：深靛蓝，但透明度只有 0.15，非常柔和 */
   background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 320'%3e%3cpath fill='%234F46E5' fill-opacity='0.15' d='M0,256L48,229.3C96,203,192,149,288,154.7C384,160,480,224,576,218.7C672,213,768,139,864,128C960,117,1056,171,1152,197.3C1248,224,1344,224,1392,224L1440,224L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z'%3e%3c/path%3e%3c/svg%3e");
   background-repeat: no-repeat;
   background-position: center bottom;
@@ -39,18 +72,15 @@
   pointer-events: none;
 }
 
-/* --- 第二层波浪（中间高度，清透蓝） --- */
+/* 第二层波浪 */
 .VPHome::after {
   content: "";
   position: fixed;
   bottom: 0;
   left: 0;
   width: 100vw;
-  /* 【更高】高度设为 65vh */
   height: 65vh;
   z-index: -2;
-  
-  /* 颜色：天蓝色，透明度 0.2 */
   background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 320'%3e%3cpath fill='%230EA5E9' fill-opacity='0.2' d='M0,64L48,80C96,96,192,128,288,128C384,128,480,96,576,106.7C672,117,768,171,864,197.3C960,224,1056,224,1152,202.7C1248,181,1344,139,1392,117.3L1440,96L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z'%3e%3c/path%3e%3c/svg%3e");
   background-repeat: no-repeat;
   background-position: center bottom;
@@ -58,18 +88,15 @@
   pointer-events: none;
 }
 
-/* --- 第三层波浪（最矮，亮青色，提亮整体） --- */
+/* 第三层波浪 */
 .VPHero::before {
   content: "";
   position: fixed;
   bottom: 0;
   left: 0;
   width: 100vw;
-  /* 【更高】高度设为 45vh */
   height: 45vh;
   z-index: -1;
-
-  /* 颜色：青色，透明度 0.25 */
   background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 320'%3e%3cpath fill='%2322d3ee' fill-opacity='0.25' d='M0,192L48,176C96,160,192,128,288,133.3C384,139,480,181,576,202.7C672,224,768,224,864,197.3C960,171,1056,117,1152,101.3C1248,85,1344,107,1392,117.3L1440,128L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z'%3e%3c/path%3e%3c/svg%3e");
   background-repeat: no-repeat;
   background-position: center bottom;
@@ -77,33 +104,43 @@
   pointer-events: none;
 }
 
-/* --- 侧边栏切换逻辑 --- */
 
-/* 1. 当 hide-sidebar 被激活时，隐藏侧边栏 */
+/* =========================================================
+   4. 侧边栏切换按钮逻辑 (保持不变)
+   ========================================================= */
+
+/* 当 hide-sidebar 被激活时，隐藏侧边栏 */
 body.hide-sidebar .VPSidebar {
   display: none !important;
 }
 
-/* 2. 当 hide-sidebar 被激活时，让内容区域不再留左边距 */
+/* 当 hide-sidebar 被激活时，让内容区域不再留左边距 */
 /* 仅在电脑端生效 (min-width: 960px) */
 @media (min-width: 960px) {
   body.hide-sidebar .VPContent {
     padding-left: 0 !important; /* 强制去除左侧留白 */
   }
   
-  /* 可选：让内容区域稍宽一点，看起来更像全屏阅读模式 */
+  /* 【全屏模式】让全屏时的内容也更宽 */
   body.hide-sidebar .VPContent .container {
-    max-width: 1200px !important; 
+    max-width: 1600px !important; 
     margin: 0 auto;
+  }
+  
+  /* 全屏模式下的内容块宽度 */
+  body.hide-sidebar .VPDoc .content-container {
+      max-width: 1200px !important;
   }
 }
 
-/* --- 隐藏右侧目录原本的 "On this page" 标题 --- */
+
+/* =========================================================
+   5. 隐藏右侧目录的标题 (On this page)
+   ========================================================= */
 .VPDocAsideOutline .outline-title {
   display: none !important;
 }
 
-/* (可选) 如果你觉得隐藏标题后，目录离顶部太近了，可以加一点间距 */
 .VPDocAsideOutline .outline-link {
   margin-top: 5px;
 }
