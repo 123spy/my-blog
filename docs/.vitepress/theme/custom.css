@@ -1,13 +1,13 @@
 /* docs/.vitepress/theme/custom.css */
 
 /* =========================================================
-   1. 全局布局变量调整 (左边栏宽度)
+   1. 全局布局变量调整
    ========================================================= */
 :root {
   /* 【左边栏】宽度设置为 200px (原值约 272px) */
   --vp-sidebar-width: 200px; 
   
-  /* 【整体布局】让大屏幕利用率更高，允许内容铺得更开 */
+  /* 【整体布局】让大屏幕利用率更高 */
   --vp-layout-max-width: 1600px;
 }
 
@@ -32,15 +32,12 @@
   
   /* --- 【右侧边栏】变窄 --- */
   .VPDocAside {
-    /* 强制宽度 200px */
     width: 200px !important;
     min-width: 200px !important;
-    
-    /* 减少右侧边栏与中间内容的间距 */
-    padding-left: 16px !important;
+    padding-left: 16px !important; /* 减少间距 */
   }
   
-  /* 调整右侧边栏容器，防止它占位太大 */
+  /* 调整右侧边栏容器宽度 */
   .VPDocAsideOutline {
     width: 200px !important;
     min-width: 200px !important;
@@ -97,7 +94,7 @@
 
 
 /* =========================================================
-   4. 侧边栏切换按钮逻辑 (保持不变)
+   4. 侧边栏切换按钮逻辑
    ========================================================= */
 
 /* 当 hide-sidebar 被激活时，隐藏侧边栏 */
@@ -126,29 +123,47 @@ body.hide-sidebar .VPSidebar {
 .VPDocAsideOutline .outline-title {
   display: none !important;
 }
-
 .VPDocAsideOutline .outline-link {
   margin-top: 5px;
 }
 
 
 /* =========================================================
-   6. 【关键修复】顶部导航栏背景统一
+   6. 【终极修复】顶部导航栏：统一背景与阴影 (解决割裂感)
    ========================================================= */
+
+/* 1. 最外层容器：负责显示统一的背景和阴影 */
 .VPNav {
-  /* 强制给整个导航栏（包括左侧 Logo 区域）加上背景色 */
-  /* var(--vp-c-bg) 是 VitePress 的默认背景变量，白天是白色，黑夜是深灰色 */
+  /* 强制背景色为系统底色 (var(--vp-c-bg)) */
+  /* 这能确保无论黑夜还是白天，Logo下面都有颜色遮挡波浪 */
   background-color: var(--vp-c-bg) !important;
   
-  /* 确保它在波浪上面 */
+  /* 统一的长条阴影，不再是断开的 */
+  box-shadow: 0 1px 8px rgba(0, 0, 0, 0.05) !important;
+  
+  /* 确保层级最高 */
   position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  z-index: 20; /* 默认通常是 20，这里显式声明一下 */
+  z-index: 50;
 }
 
-/* 针对内部容器的修复（防止某些情况下内部还是透明） */
-.VPNavBar {
+/* 2. 专门针对首页顶部 */
+/* 修复首页滑动前可能透明的问题 */
+.VPNav.home {
   background-color: var(--vp-c-bg) !important;
+}
+
+/* 3. 核心修复：把内部所有“零件”的背景和阴影全部清空 */
+/* 这样只有最外层的 .VPNav 会显示颜色，看起来就是一个完整的整体 */
+.VPNavBar, 
+.VPNavBar > .container,
+.VPNavBarTitle,
+.VPNavBarMenu {
+  background-color: transparent !important;
+  box-shadow: none !important;
+  border: none !important;
+}
+
+/* 4. 修复 Logo 区域可能存在的独立背景 */
+.VPNavBarTitle {
+  background: transparent !important;
 }
