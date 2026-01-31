@@ -2,13 +2,9 @@
 
 ## 哈希
 
-### 两数之和
+### [1. 两数之和](https://leetcode.cn/problems/two-sum/)
 
-解题思路：
-
-朴素思想，我们会想到使用for的两层循环来解决问题，但是这样的时间复杂度为O(n*n)。
-
-改进思想，如何能优化掉一层for循环使一层O(n)的查询，变为O(1)？把过去已经用过的数据（数值与下标）使用map存储起来，这样既能在O(1)级别的时间查询出来。
+解题思路：把已经用过的数据（数值与下标）使用map存储起来，这样既能在O(1)级别的时间查询出来。
 
 ```c++
 class Solution {
@@ -32,11 +28,9 @@ public:
 
 
 
-### 字母异位词分组
+### [49. 字母异位词分组](https://leetcode.cn/problems/group-anagrams/)
 
-解题思路：
-
-string本质上可以看作是一个vector\<char>，可以使用sort()函数对其进行排序，将所有单词内部排序后，互为异位词的重排序单词是相同的。
+解题思路：string本质上可以看作是一个vector\<char>，可以使用sort()函数对其进行排序，将所有单词内部排序后，互为异位词的重排序单词是相同的。
 
 例如：abc, acb, bac排序后都是abc。我们就知道是一组的。
 
@@ -61,7 +55,7 @@ public:
 
 
 
-### 最长连续序列
+### [128. 最长连续序列](https://leetcode.cn/problems/longest-consecutive-sequence/)
 
 解题思路：
 
@@ -135,7 +129,7 @@ public:
 
 ## 双指针
 
-### 移动零
+### [283. 移动零](https://leetcode.cn/problems/move-zeroes/)
 
 ```c++
 class Solution {
@@ -155,7 +149,7 @@ public:
 
 
 
-### 盛最多水的容器
+### [11. 盛最多水的容器](https://leetcode.cn/problems/container-with-most-water/)
 
 解题思路：对撞指针
 
