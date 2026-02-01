@@ -1,55 +1,77 @@
 /* docs/.vitepress/theme/custom.css */
-/* 定位 */
+
+/* =========================================================
+   1. 基础配置与全局变量
+   ========================================================= */
 :root {
-  --vp-sidebar-width: 200px; 
-  --vp-layout-max-width: 1600px;
+  /* 侧边栏宽度：统一控制 */
+  --vp-sidebar-width: 320px; 
+  --vp-layout-max-width: 1700px;
   --vp-nav-height: 64px;
-  /* 统一滚动停留位置 */
+  
+  /* 锚点跳转补偿：防止标题被导航栏遮挡 */
   scroll-padding-top: 80px !important; 
 }
 
 /* =========================================================
-   2. 核心布局：中间变宽 & 右侧整体位移
+   2. 左侧侧边栏 (Sidebar) 样式定制
+   ========================================================= */
+.VPSidebar {
+  /* 宽度引用变量，并增加左内边距提升呼吸感 */
+  width: var(--vp-sidebar-width) !important;
+  padding-left: 50px !important;
+  
+  /* 垂直位置：在导航栏下方预留 30px 间距 */
+  padding-top: calc(var(--vp-nav-height) + 30px) !important;
+  
+  /* 视觉过渡：平滑展示 */
+  transition: background-color 0.5s, opacity 0.5s;
+}
+
+/* =========================================================
+   3. 文章内容区 (Doc) 与 右侧目录 (Aside)
    ========================================================= */
 @media (min-width: 1280px) {
+  /* 调整文章主体最大宽度，优化阅读体验 */
   .VPDoc .content-container {
     max-width: 960px !important; 
   }
   
+  /* 右侧目录栏定位 */
   .VPDocAside {
-    width: 200px !important;
-    min-width: 200px !important;
+    width: 220px !important;
+    min-width: 220px !important;
     padding-left: 16px !important;
-    /* 配合固定导航栏，让侧边栏下移一点点 */
-    margin-top: 40px !important; 
+    /* 顶部对齐：设置为 0px 以紧贴内容区顶部，或根据需要微调 */
+    margin-top: 0 !important; 
   }
   
   .VPDocAsideOutline {
-    width: 200px !important;
-    min-width: 200px !important;
+    width: 220px !important;
+    min-width: 220px !important;
   }
 }
 
-/* 恢复目录标题的显示，并优化样式 */
+/* 右侧目录标题样式优化 */
 .VPDocAsideOutline .outline-title {
   display: block !important;
   font-size: 13px;
   font-weight: 700;
   letter-spacing: 0.4px;
   color: var(--vp-c-text-1);
-  margin-bottom: 0px;
+  margin-top: 10px;
 }
 
 /* =========================================================
-   3. 强制标题感应区域 (解决跳格的关键)
+   4. 标题感应区域优化 (解决点击目录跳格问题)
    ========================================================= */
 .vp-doc h2, .vp-doc h3, .vp-doc h4 {
-  /* 必须与 config 里的 offset 保持一致，强制判定 */
+  /* 这里的数值应与 scroll-padding-top 保持感官一致 */
   scroll-margin-top: 80px !important;
 }
 
 /* =========================================================
-   4. 导航栏样式 (保持不变)
+   5. 顶部导航栏 (Nav) 透明化与阴影
    ========================================================= */
 .VPNav {
   background-color: var(--vp-c-bg) !important;
@@ -58,29 +80,74 @@
   z-index: 50;
   width: 100%;
 }
-.VPNavBar, .VPNavBar > .container, .VPNavBarTitle, .VPNavBarMenu {
+
+/* 移除导航栏内部组件的默认背景与边框，实现纯净感 */
+.VPNavBar, 
+.VPNavBar > .container, 
+.VPNavBarTitle, 
+.VPNavBarMenu {
   background-color: transparent !important;
   box-shadow: none !important;
   border: none !important;
 }
 
 /* =========================================================
-   5. 侧边栏切换逻辑
+   6. 侧边栏显隐逻辑 (针对自定义无侧边栏页面)
    ========================================================= */
-body.hide-sidebar .VPSidebar { display: none !important; }
+body.hide-sidebar .VPSidebar { 
+  display: none !important; 
+}
+
 @media (min-width: 960px) {
-  body.hide-sidebar .VPContent { padding-left: 0 !important; }
-  body.hide-sidebar .VPDoc .content-container { max-width: 1200px !important; }
+  /* 当侧边栏隐藏时，内容区自动左移并加宽 */
+  body.hide-sidebar .VPContent { 
+    padding-left: 0 !important; 
+  }
+  body.hide-sidebar .VPDoc .content-container { 
+    max-width: 1200px !important; 
+  }
 }
 
 /* =========================================================
-   6. 波浪背景动画 (保持不变)
+   7. 装饰性波浪背景 (SVG)
    ========================================================= */
-.VPHome, .VPHero { position: relative; z-index: 10; }
-.VPHome::before, .VPHome::after, .VPHero::before {
-  content: ""; position: fixed; bottom: 0; left: 0; width: 100vw; pointer-events: none;
-  background-repeat: no-repeat; background-position: center bottom; background-size: cover;
+.VPHome, .VPHero { 
+  position: relative; 
+  z-index: 10; 
 }
-.VPHome::before { z-index: -3; height: 85vh; background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 320'%3e%3cpath fill='%234F46E5' fill-opacity='0.15' d='M0,256L48,229.3C96,203,192,149,288,154.7C384,160,480,224,576,218.7C672,213,768,139,864,128C960,117,1056,171,1152,197.3C1248,224,1344,224,1392,224L1440,224L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z'%3e%3c/path%3e%3c/svg%3e"); }
-.VPHome::after { z-index: -2; height: 65vh; background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 320'%3e%3cpath fill='%230EA5E9' fill-opacity='0.2' d='M0,64L48,80C96,96,192,128,288,128C384,128,480,96,576,106.7C672,117,768,171,864,197.3C960,224,1056,224,1152,202.7C1248,181,1344,139,1392,117.3L1440,96L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z'%3e%3c/path%3e%3c/svg%3e"); }
-.VPHero::before { z-index: -1; height: 45vh; background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 320'%3e%3cpath fill='%2322d3ee' fill-opacity='0.25' d='M0,192L48,176C96,160,192,128,288,133.3C384,139,480,181,576,202.7C672,224,768,224,864,197.3C960,171,1056,117,1152,101.3C1248,85,1344,107,1392,117.3L1440,128L1440,128L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z'%3e%3c/path%3e%3c/svg%3e"); }
+
+/* 通用伪元素配置：固定底部，禁止交互 */
+.VPHome::before, 
+.VPHome::after, 
+.VPHero::before {
+  content: "";
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100vw;
+  pointer-events: none;
+  background-repeat: no-repeat;
+  background-position: center bottom;
+  background-size: cover;
+}
+
+/* 深紫色波浪层 */
+.VPHome::before { 
+  z-index: -3; 
+  height: 85vh; 
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 320'%3e%3cpath fill='%234F46E5' fill-opacity='0.15' d='M0,256L48,229.3C96,203,192,149,288,154.7C384,160,480,224,576,218.7C672,213,768,139,864,128C960,117,1056,171,1152,197.3C1248,224,1344,224,1392,224L1440,224L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z'%3e%3c/path%3e%3c/svg%3e"); 
+}
+
+/* 蓝色波浪层 */
+.VPHome::after { 
+  z-index: -2; 
+  height: 65vh; 
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 320'%3e%3cpath fill='%230EA5E9' fill-opacity='0.2' d='M0,64L48,80C96,96,192,128,288,128C384,128,480,96,576,106.7C672,117,768,171,864,197.3C960,224,1056,224,1152,202.7C1248,181,1344,139,1392,117.3L1440,96L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z'%3e%3c/path%3e%3c/svg%3e"); 
+}
+
+/* 青色波浪层 */
+.VPHero::before { 
+  z-index: -1; 
+  height: 45vh; 
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 320'%3e%3cpath fill='%2322d3ee' fill-opacity='0.25' d='M0,192L48,176C96,160,192,128,288,133.3C384,139,480,181,576,202.7C672,224,768,224,864,197.3C960,171,1056,117,1152,101.3C1248,85,1344,107,1392,117.3L1440,128L1440,128L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z'%3e%3c/path%3e%3c/svg%3e"); 
+}
