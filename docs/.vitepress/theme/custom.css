@@ -1,169 +1,86 @@
 /* docs/.vitepress/theme/custom.css */
-
-/* =========================================================
-   1. 全局布局变量调整
-   ========================================================= */
+/* 定位 */
 :root {
-  /* 【左边栏】宽度设置为 200px (原值约 272px) */
   --vp-sidebar-width: 200px; 
-  
-  /* 【整体布局】让大屏幕利用率更高 */
   --vp-layout-max-width: 1600px;
+  --vp-nav-height: 64px;
+  /* 统一滚动停留位置 */
+  scroll-padding-top: 80px !important; 
 }
-
-/* 针对移动端/平板 (小于 960px) 的特殊处理 */
-@media (max-width: 960px) {
-  :root {
-    --vp-sidebar-width: 272px; /* 手机端恢复默认，否则弹窗太窄 */
-  }
-}
-
 
 /* =========================================================
-   2. 【核心修改】中间变宽 & 右边变窄 (仅在电脑端生效)
+   2. 核心布局：中间变宽 & 右侧整体位移
    ========================================================= */
 @media (min-width: 1280px) {
-  
-  /* --- 【中间内容】变宽 --- */
   .VPDoc .content-container {
-    /* 默认是 688px，这里改为 960px，你可以根据喜好改成 1000px 或更大 */
     max-width: 960px !important; 
   }
   
-  /* --- 【右侧边栏】变窄 --- */
   .VPDocAside {
     width: 200px !important;
     min-width: 200px !important;
-    padding-left: 16px !important; /* 减少间距 */
+    padding-left: 16px !important;
+    /* 配合固定导航栏，让侧边栏下移一点点 */
+    margin-top: 40px !important; 
   }
   
-  /* 调整右侧边栏容器宽度 */
   .VPDocAsideOutline {
     width: 200px !important;
     min-width: 200px !important;
   }
 }
 
-
-/* =========================================================
-   3. 波浪背景动画 (保持不变)
-   ========================================================= */
-.VPHome, .VPHero {
-  position: relative;
-  z-index: 10;
-}
-
-/* 第一层波浪 */
-.VPHome::before {
-  content: "";
-  position: fixed;
-  bottom: 0; left: 0; width: 100vw; height: 85vh; 
-  z-index: -3;
-  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 320'%3e%3cpath fill='%234F46E5' fill-opacity='0.15' d='M0,256L48,229.3C96,203,192,149,288,154.7C384,160,480,224,576,218.7C672,213,768,139,864,128C960,117,1056,171,1152,197.3C1248,224,1344,224,1392,224L1440,224L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z'%3e%3c/path%3e%3c/svg%3e");
-  background-repeat: no-repeat;
-  background-position: center bottom;
-  background-size: cover;
-  pointer-events: none;
-}
-
-/* 第二层波浪 */
-.VPHome::after {
-  content: "";
-  position: fixed;
-  bottom: 0; left: 0; width: 100vw; height: 65vh;
-  z-index: -2;
-  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 320'%3e%3cpath fill='%230EA5E9' fill-opacity='0.2' d='M0,64L48,80C96,96,192,128,288,128C384,128,480,96,576,106.7C672,117,768,171,864,197.3C960,224,1056,224,1152,202.7C1248,181,1344,139,1392,117.3L1440,96L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z'%3e%3c/path%3e%3c/svg%3e");
-  background-repeat: no-repeat;
-  background-position: center bottom;
-  background-size: cover;
-  pointer-events: none;
-}
-
-/* 第三层波浪 */
-.VPHero::before {
-  content: "";
-  position: fixed;
-  bottom: 0; left: 0; width: 100vw; height: 45vh;
-  z-index: -1;
-  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 320'%3e%3cpath fill='%2322d3ee' fill-opacity='0.25' d='M0,192L48,176C96,160,192,128,288,133.3C384,139,480,181,576,202.7C672,224,768,224,864,197.3C960,171,1056,117,1152,101.3C1248,85,1344,107,1392,117.3L1440,128L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z'%3e%3c/path%3e%3c/svg%3e");
-  background-repeat: no-repeat;
-  background-position: center bottom;
-  background-size: cover;
-  pointer-events: none;
-}
-
-
-/* =========================================================
-   4. 侧边栏切换按钮逻辑
-   ========================================================= */
-
-/* 当 hide-sidebar 被激活时，隐藏侧边栏 */
-body.hide-sidebar .VPSidebar {
-  display: none !important;
-}
-
-/* 当 hide-sidebar 被激活时，让内容区域不再留左边距 */
-@media (min-width: 960px) {
-  body.hide-sidebar .VPContent {
-    padding-left: 0 !important;
-  }
-  body.hide-sidebar .VPContent .container {
-    max-width: 1600px !important; 
-    margin: 0 auto;
-  }
-  body.hide-sidebar .VPDoc .content-container {
-      max-width: 1200px !important;
-  }
-}
-
-
-/* =========================================================
-   5. 隐藏右侧目录的标题 (On this page)
-   ========================================================= */
+/* 恢复目录标题的显示，并优化样式 */
 .VPDocAsideOutline .outline-title {
-  display: none !important;
+  display: block !important;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  color: var(--vp-c-text-1);
+  margin-bottom: 0px;
 }
-.VPDocAsideOutline .outline-link {
-  margin-top: 5px;
-}
-
 
 /* =========================================================
-   6. 【终极修复】顶部导航栏：统一背景与阴影 (解决割裂感)
+   3. 强制标题感应区域 (解决跳格的关键)
    ========================================================= */
+.vp-doc h2, .vp-doc h3, .vp-doc h4 {
+  /* 必须与 config 里的 offset 保持一致，强制判定 */
+  scroll-margin-top: 80px !important;
+}
 
-/* 1. 最外层容器：负责显示统一的背景和阴影 */
+/* =========================================================
+   4. 导航栏样式 (保持不变)
+   ========================================================= */
 .VPNav {
-  /* 强制背景色为系统底色 (var(--vp-c-bg)) */
-  /* 这能确保无论黑夜还是白天，Logo下面都有颜色遮挡波浪 */
   background-color: var(--vp-c-bg) !important;
-  
-  /* 统一的长条阴影，不再是断开的 */
   box-shadow: 0 1px 8px rgba(0, 0, 0, 0.05) !important;
-  
-  /* 确保层级最高 */
   position: fixed;
   z-index: 50;
+  width: 100%;
 }
-
-/* 2. 专门针对首页顶部 */
-/* 修复首页滑动前可能透明的问题 */
-.VPNav.home {
-  background-color: var(--vp-c-bg) !important;
-}
-
-/* 3. 核心修复：把内部所有“零件”的背景和阴影全部清空 */
-/* 这样只有最外层的 .VPNav 会显示颜色，看起来就是一个完整的整体 */
-.VPNavBar, 
-.VPNavBar > .container,
-.VPNavBarTitle,
-.VPNavBarMenu {
+.VPNavBar, .VPNavBar > .container, .VPNavBarTitle, .VPNavBarMenu {
   background-color: transparent !important;
   box-shadow: none !important;
   border: none !important;
 }
 
-/* 4. 修复 Logo 区域可能存在的独立背景 */
-.VPNavBarTitle {
-  background: transparent !important;
+/* =========================================================
+   5. 侧边栏切换逻辑
+   ========================================================= */
+body.hide-sidebar .VPSidebar { display: none !important; }
+@media (min-width: 960px) {
+  body.hide-sidebar .VPContent { padding-left: 0 !important; }
+  body.hide-sidebar .VPDoc .content-container { max-width: 1200px !important; }
 }
+
+/* =========================================================
+   6. 波浪背景动画 (保持不变)
+   ========================================================= */
+.VPHome, .VPHero { position: relative; z-index: 10; }
+.VPHome::before, .VPHome::after, .VPHero::before {
+  content: ""; position: fixed; bottom: 0; left: 0; width: 100vw; pointer-events: none;
+  background-repeat: no-repeat; background-position: center bottom; background-size: cover;
+}
+.VPHome::before { z-index: -3; height: 85vh; background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 320'%3e%3cpath fill='%234F46E5' fill-opacity='0.15' d='M0,256L48,229.3C96,203,192,149,288,154.7C384,160,480,224,576,218.7C672,213,768,139,864,128C960,117,1056,171,1152,197.3C1248,224,1344,224,1392,224L1440,224L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z'%3e%3c/path%3e%3c/svg%3e"); }
+.VPHome::after { z-index: -2; height: 65vh; background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 320'%3e%3cpath fill='%230EA5E9' fill-opacity='0.2' d='M0,64L48,80C96,96,192,128,288,128C384,128,480,96,576,106.7C672,117,768,171,864,197.3C960,224,1056,224,1152,202.7C1248,181,1344,139,1392,117.3L1440,96L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z'%3e%3c/path%3e%3c/svg%3e"); }
+.VPHero::before { z-index: -1; height: 45vh; background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 320'%3e%3cpath fill='%2322d3ee' fill-opacity='0.25' d='M0,192L48,176C96,160,192,128,288,133.3C384,139,480,181,576,202.7C672,224,768,224,864,197.3C960,171,1056,117,1152,101.3C1248,85,1344,107,1392,117.3L1440,128L1440,128L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z'%3e%3c/path%3e%3c/svg%3e"); }
