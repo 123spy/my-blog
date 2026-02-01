@@ -2,37 +2,57 @@
 
 ## Buffer（缓冲区）
 
-Buffer是 Java NIO的核心组件之一，NIO的数据读写操作基于Buffer进行。
+Buffer本质上是一个可以读写数据的内存块，缓冲区对象提供了一组方法与机制，方便使用与记录缓冲区的状态变化情况。
 
-注：数据必须从通道（Channel）读取到缓冲区中，或者从缓冲区写入到通道中。
-
-缓冲区（Buffer）本质上是一个可以读写数据的内存块，可以理解成是一个容器对象，该对象提供了一组方法，可以更轻松地使用内存块，缓冲区对象内置了一些机制，能够跟踪和记录缓冲区的状态变化情况。
-
-Channel提供从文件、网络读取数据的渠道，但是读取或写入的数据都必须经由Buffer 。
+Channel读取或写入的数据都**必须经由Buffer** 。
 
 ### Buffer的常用类型
 
-- ByteBuffer：用于字节数据的读写。最常用，支持直接缓冲区（MappedByteBuffer）和间接缓冲区（HeapByteBuffer）。
+- ByteBuffer：用于字节数据的读写。**最常用**，支持直接缓冲区（MappedByteBuffer）和间接缓冲区（HeapByteBuffer）。
 - CharBuffer：用于字符数据的读写。通常用于字符编码/解码操作，如与 Charset 配合使用。
 - DoubleBuffer：用于双精度浮点数（double）数据的读写。提供对 double 类型数组的封装，支持相对和绝对读写操作。
-- MappedByteBuffer：用于将文件区域映射到内存中的读写。是 ByteBuffer 的子类，通过 FileChannel.map() 创建，支持直接 I/O 操作，适合大文件处理。
+- MappedByteBuffer：用于将文件区域映射到内存中的读写。是ByteBuffer的子类，通过FileChannel.map() 创建，支持直接 I/O 操作，适合大文件处理。
 
 ### Buffer的常见方法
 
-- allocate(int capacity)：分配一个非直接缓冲区（堆内存）。
-- allocateDirect(int capacity)：分配一个直接缓冲区（堆外内存，适合频繁 I/O 操作）。
-- wrap(byte[] array)：将现有数组包装为缓冲区（仅适用于ByteBuffer 等基本类型）。
-- put(byte b)：相对写入：向缓冲区写入单个字节（position 自动递增）。
-- putInt()：放入一个int字节的元素，因为在ByteBuffer中，是一个字节一个字节存储的。这个函数会直接放入出4个字节。
-- get()：相对读取：从 position 读取一个字节（position 自动递增）。
-- getInt()：获取一个int字节的元素，因为在ByteBuffer中，是一个字节一个字节存储的。这个函数会直接读取出4个字节并转换成为int。
-- flip()：切换到读模式：将 limit 设为当前 position，position 重置为 0。
-- clear()：清空缓冲区：将 position 设为 0，limit 设为 capacity。
-- rewind()：重置读取位置：将 position 设为 0，保留 limit 值。
-- remaining()：剩余可操作的元素，也就是求size()。
-- mark()：使用mark记录当前的position位置，mark=position 
-- reset()：令position回溯，position=mark
-- compact()：令数组中的前方具有空位的内容向前移动。比如：在一个队伍中排队，此时你前面的人已经都走了，那么现在需要你和你身后的人们向前移动。
+- 分配内存
+
+  - allocate(int capacity)：分配一个非直接缓冲区（堆内存）。
+
+  - allocateDirect(int capacity)：分配一个直接缓冲区（堆外内存，适合频繁 I/O 操作）。
+
+  - wrap(byte[] array)：将现有数组包装为缓冲区（仅适用于ByteBuffer 等基本类型）。
+
+- 数据写入
+
+  - put(byte b)：相对写入：向缓冲区写入单个字节（position 自动递增）。
+
+  - putInt()：放入一个int字节的元素，因为在ByteBuffer中，是一个字节一个字节存储的。这个函数会直接放入出4个字节。
+
+- 数据获取
+
+  - get()：相对读取：从 position 读取一个字节（position 自动递增）。
+
+  - getInt()：获取一个int字节的元素，因为在ByteBuffer中，是一个字节一个字节存储的。这个函数会直接读取出4个字节并转换成为int。
+
+- 模式切换
+
+  - flip()：切换到读模式：将 limit 设为当前 position，position 重置为 0。
+
+- 其他操作
+
+  - clear()：清空缓冲区：将 position 设为 0，limit 设为 capacity。
+
+  - rewind()：重置读取位置：将 position 设为 0，保留 limit 值。
+
+  - remaining()：剩余可操作的元素，也就是求size()。
+
+  - mark()：使用mark记录当前的position位置，mark=position 
+
+  - reset()：令position回溯，position=mark
+
+  - compact()：队列前方有空位时，令内容向前移动。
+
 
 ### Buffer的属性
 
@@ -61,15 +81,15 @@ Channel提供从文件、网络读取数据的渠道，但是读取或写入的�
   - 初始状态：未调用mark()前值为-1，调用后 0 ≤ mark ≤ position。
   - 典型场景：标记读取起点后跳转，再通过reset()返回标记点继续处理。
 
+
+
 ## Channel（通道）
 
-Channel（通道） 是 Java NIO的核心组件之一，它表示与I/O设备（如文件、网络套接字等）之间的连接。
+### Channel特点
 
-Channel是双向的，可以同时支持读和写操作，而流只能单向操作（InputStream 或 OutputStream）。
-
-
-
-### Channel 与 Buffer 的关系
+- 传输特点
+  - Channel是双向的，可以同时支持读和写操作。
+  - 流只能单向操作（InputStream或OutputStream）。
 
 - 数据传输方式：
 
@@ -82,11 +102,11 @@ Channel是双向的，可以同时支持读和写操作，而流只能单向操�
     - 写操作：从Buffer写入数据到Channel。
 - 优势：
     - 减少数据在内存和磁盘之间的复制次数。
-    - 支持非阻塞 I/O 和多路复用（通过 Selector），提高并发性能。
+    - 支持非阻塞I/O和多路复用（通过 Selector），提高并发性能。
 
 
 
-### Channel 的类型
+### Channel常用类型
 
 - FileChannel：用于文件 I/O 操作（读写文件）。
 - SocketChannel：客户端用于 TCP 网络通信（基于流的连接）。
@@ -98,7 +118,7 @@ Channel是双向的，可以同时支持读和写操作，而流只能单向操�
 
 
 
-### Channel 的核心方法
+### Channel的核心方法
 
 - read(ByteBuffer dst)：从Channel读取数据到Buffer。返回值为实际读取的字节数（-1 表示 EOF）。
 - write(ByteBuffer src)：从Buffer写入数据到Channel。返回值为实际写入的字节数。
@@ -141,28 +161,7 @@ A：在Java NIO中，channel.read(buffer) 返回的-1不是从网络上读到的
 
 
 
-### Channel 的工作原理
-
-#### 双向性
-
-Channel支持**读**和写操作，例如：
-
-```java
-FileChannel channel = new RandomAccessFile("data.txt", "rw").getChannel();
-ByteBuffer buffer = ByteBuffer.allocate(1024);
-
-// 读操作：从 Channel 读取数据到 Buffer
-int bytesRead = channel.read(buffer);
-
-// 写操作：从 Buffer 写入数据到 Channel
-int bytesWritten = channel.write(buffer);
-```
-
-
-
-
-
-#### 非阻塞 I/O
+### Channel的非阻塞I/O
 
 Channel可以配置为非阻塞模式（默认是阻塞模式），结合Selector实现多路复用：
 
@@ -182,26 +181,13 @@ socketChannel.configureBlocking(false); // 设置非阻塞模式
 
 
 
-#### Selector 的配合
-
-Selector 是 NIO 的核心组件之一，用于监听多个 Channel 的事件（如连接、读、写）：
-
-```java
-Selector selector = Selector.open();
-socketChannel.register(selector, SelectionKey.OP_READ); // 监听读事件
-```
-
    
 
 ## Selector（选择器）
 
-Selector（选择器） 是 Java NIO的核心组件之一，用于实现I/O多路复用。它允许一个线程同时监控多个通道（Channel）的I/O事件（如可读、可写、连接、接受连接），从而在事件发生时进行响应。这种机制显著提高了系统的并发性能和资源利用率。
-
-
-
 ### Selector 的工作原理
 
-Selector 的核心思想是通过事件驱动模型，将I/O操作从线程中解耦，避免为每个连接分配独立线程。其工作流程分为以下三个步骤：
+Selector的核心思想是通过**事件驱动模型**，将I/O操作从线程中解耦，避免为每个连接分配独立线程。其工作流程分为以下三个步骤：
 
 1. 注册（Registration）
    - 将通道（如 SocketChannel、ServerSocketChannel）注册到 Selector 上，并指定感兴趣的 I/O 事件（如OP_READ、OP_WRITE）。
@@ -216,11 +202,9 @@ Selector 的核心思想是通过事件驱动模型，将I/O操作从线程中�
 
 
 
-Q：什么是事件驱动模型？
+Q：什么是事件驱动模型？:full_moon:
 
 A：
-
-:full_moon:人话理解：
 
 非事件驱动（轮询/死等）：你点完外卖，站在门口一直盯着路口看。外卖员没来，你不能睡觉、不能打游戏、不能洗澡。
 
@@ -253,22 +237,22 @@ A：
 
 
 
-### SelectionKey 的作用
+### SelectionKey的作用
 
 SelectionKey是Selector与channel通道之间的绑定关系，表示一个通道在Selector上的注册状态。其关键功能包括：
 
 - 事件兴趣集（Interest Set）
-  - 指定通道对哪些事件感兴趣（如 OP_READ、OP_WRITE）。可通过 interestOps() 设置或获取。
+  - 指定通道对哪些事件感兴趣（如 OP_READ、OP_WRITE）。可通过interestOps()设置或获取。
 
 - 事件就绪集（Ready Set）
   - 表示通道当前已就绪的事件（如 isReadable()、isWritable()）。
 
-- 通道与 Selector 的关联
-  - 通过 key.channel() 获取关联的通道，key.selector()获取关联的Selector。
+- 通道与Selector的关联
+  - 通过key.channel()获取关联的通道，key.selector()获取关联的Selector。
 
 
 
-### Selector 的典型使用场景
+### Selector的典型使用场景
 
 Selector主要用于需要高并发、低延迟的网络服务场景，例如：
 
@@ -281,7 +265,7 @@ Selector主要用于需要高并发、低延迟的网络服务场景，例如：
 
 
 
-### Selector 的优势与注意事项
+### Selector的优势与注意事项
 
 优势：
 
@@ -342,34 +326,26 @@ Selector主要用于需要高并发、低延迟的网络服务场景，例如：
 
 ## NIO的缺陷
 
-NIO有一个非常出名的 Bug，甚至可以说，很多开发者转向 Netty 的原因之一，就是为了避开这个在 Java NIO 底层挥之不去的阴影。
-
-这个 Bug 通常被称为 **NIO Epoll 死循环（CPU 100%）Bug**。
+NIO有一个非常出名的Bug，被称为**NIO Epoll死循环**（CPU 100%）Bug。
 
 
 
-现象描述：没活儿干，却忙个不停
+在正常情况下，`selector.select()` 是一个阻塞操作。如果没有事件发生，线程应该安静地睡在底层内核调用里，不占用 CPU。
 
-在正常情况下，`selector.select()` 是一个阻塞操作。如果没有事件发生（没人连接、没人发消息），线程应该安静地睡在底层内核调用里，不占用 CPU。
-
-**Bug 发生时**： 即便没有任何事件触发，`selector.select()` 也会瞬间返回。因为是死循环（`while(true)`），线程会不停地： `select() -> 返回 0 -> 回到循环头 -> select() -> 返回 0 ...` 这个过程没有任何阻塞，导致该线程疯狂抢占 CPU 资源。你可以想象一个保安，明明大门口没人，他却每秒钟拉一次警报说“没人！”，直到把自己累瘫。
+**Bug 发生时**： 即便没有任何事件触发，`selector.select()` 也会瞬间返回。因为是死循环（`while(true)`），线程会不停地： `select() -> 返回 0 -> 回到循环头 -> select() -> 返回 0 ...` 这个过程没有任何阻塞，导致该线程疯狂抢占CPU资源。
 
 
 
-起因：内核的“误报”
-
-这个 Bug 的根源不在 Java 本身，而在 **Linux 内核的 epoll 机制**。
+这个 Bug 的根源不在 Java 本身，而在 **Linux 内核的epoll机制**。
 
 - **底层逻辑**：Java 的 `Selector` 在 Linux 下是基于 `epoll` 实现的。
 - **触发点**：在某些特定情况下（例如客户端异常断开连接），底层内核会触发一个错误码。
-- **Java 的反应**：Java NIO 的原始实现没有正确处理这个特殊的错误码，导致它认为“有事发生了”，于是让 `select()` 返回。
-- **尴尬的结果**：当 Java 去查看具体的 `selectedKeys` 集合时，却发现里面是空的（因为确实没有真正的 IO 事件）。
+- **Java 的反应**：Java NIO的原始实现没有正确处理这个特殊的错误码，导致它认为“有事发生了”，于是让 `select()` 返回。
+- **尴尬的结果**：当Java 去查看具体的 `selectedKeys` 集合时，却发现里面是空的（因为确实没有真正的 IO 事件）。
 
 
 
-为什么这个 Bug 这么难修？
+官方曾多次尝试修复，但因为这是操作系统层面的反馈信号与JVM交互的问题，很难在不破坏兼容性的情况下彻底解决。
 
-Sun/Oracle 官方曾多次尝试修复，但因为这是操作系统层面的反馈信号与 JVM 交互的问题，很难在不破坏兼容性的情况下彻底解决。
-
-在 2026 年的今天，虽然新版本的 JDK 已经在很大程度上缓解了这个问题，但在高并发、网络环境复杂的工业场景中，偶尔还是会冒出来。
+虽然新版本的JDK已经在很大程度上缓解了这个问题，但在高并发、网络环境复杂的工业场景中，偶尔还是会冒出来。
 
