@@ -308,6 +308,27 @@ public:
 
 ## 子串
 
+### [560. 和为 K 的子数组](https://leetcode.cn/problems/subarray-sum-equals-k/)
+
+```c++
+class Solution {
+public:
+    unordered_map<int, int> h;
+    int subarraySum(vector<int>& nums, int k) {
+        h[0] = 1;
+        int pre = 0, res = 0;
+        for (int i = 0; i < nums.size(); i ++ ) {
+            pre += nums[i];
+            if(h.find(pre - k) != h.end()) res += h[pre - k];
+            h[pre] ++;
+        }
+        return res;
+    }
+};
+```
+
+
+
 ### [239. 滑动窗口最大值](https://leetcode.cn/problems/sliding-window-maximum/)
 
 常规解法
@@ -370,7 +391,181 @@ public:
 
 ## 普通数组
 
+### [53. 最大子数组和](https://leetcode.cn/problems/maximum-subarray/)
+
+```c++
+class Solution {
+public:
+    int dp[100010];
+    int maxSubArray(vector<int>& nums) {
+        dp[0] = nums[0];
+        int res = dp[0];
+
+        for (int i = 1; i < nums.size(); i ++ ) {
+            dp[i] = max(nums[i], nums[i] + dp[i - 1]);
+
+            res = max(res, dp[i]);
+        }
+        return res;
+    }
+};
+```
+
+
+
+### [56. 合并区间](https://leetcode.cn/problems/merge-intervals/)
+
+```c++
+class Solution {
+public:
+    vector<vector<int>> merge(vector<vector<int>>& intervals) {
+        vector<pair<int, int>> a;
+        for (int i = 0; i < intervals.size(); i ++ ) a.push_back({intervals[i][0], intervals[i][1]});
+        sort(a.begin(), a.end());
+
+        vector<vector<int>> res;
+        int l, r;
+        for (int i = 0; i < a.size(); i ++ ) {
+            int x = a[i].first, y = a[i].second;
+            if(i == 0) {
+                l = x, r = y;
+            } else {
+                if(x >= l && y <= r) {
+                    continue;
+                }else
+                if((x >= l && x <= r) && (y > r)) {
+                    r = y;
+                } else if (x > r) {
+                    vector<int> tmp;
+                    tmp.push_back(l);
+                    tmp.push_back(r);
+                    res.push_back(tmp);
+                    l = x, r = y;
+                }
+            }
+        }
+        vector<int> tmp;
+        tmp.push_back(l);
+        tmp.push_back(r);
+        res.push_back(tmp);
+        return res;
+    }
+};
+```
+
+### [189. 轮转数组](https://leetcode.cn/problems/rotate-array/)
+
+```c++
+class Solution {
+public:
+    vector<int> a;
+
+    void rotate(vector<int>& nums, int k) {
+        k = k % nums.size();
+        a = nums;
+        reverse(nums.size() - k, nums.size() - 1);
+        reverse(0, nums.size() - k - 1);
+        reverse(0, nums.size() - 1);
+        nums = a;
+    }
+
+    void reverse(int l, int r) {
+        while(l < r) {
+            swap(a[l], a[r]);
+            l ++;
+            r --;
+        }
+    }
+
+    
+};
+```
+
+### [238. 除了自身以外数组的乘积](https://leetcode.cn/problems/product-of-array-except-self/)
+
+```c++
+class Solution {
+public:
+    vector<int> l, r;
+    vector<int> productExceptSelf(vector<int>& nums) {
+        int tmp = 1;
+        for (int i = 0; i < nums.size(); i ++ ) {
+            l.push_back(tmp);
+            tmp *= nums[i];
+        }
+
+        tmp = 1;
+        for (int i = nums.size() - 1; i >= 0; i -- ) {
+            r.push_back(tmp);
+            tmp *= nums[i];
+        }
+        reverse(r.begin(), r.end());
+
+        vector<int> res;
+        for (int i = 0; i < nums.size(); i ++ ) {
+            res.push_back(l[i] * r[i]);
+        }
+        return res;
+    }
+};
+```
+
+### [41. 缺失的第一个正数](https://leetcode.cn/problems/first-missing-positive/)
+
+```c++
+class Solution {
+public:
+    unordered_set<int> h;
+    int firstMissingPositive(vector<int>& nums) {
+        for (int i = 0; i < nums.size(); i ++ ) h.insert(nums[i]);
+        int idx = 1;
+        while(h.count(idx)) {
+            idx ++;
+        }
+        return idx;
+    }
+};
+```
+
+
+
 ## 矩阵
+
+### [73. 矩阵置零](https://leetcode.cn/problems/set-matrix-zeroes/)
+
+```c++
+class Solution {
+public:
+    unordered_set<int> x, y;
+    void setZeroes(vector<vector<int>>& matrix) {
+        int n = matrix.size(), m = matrix[0].size();
+
+        for (int i = 0; i < n; i ++ ) {
+            for (int j = 0; j < m; j ++ ) {
+                if(matrix[i][j] == 0) {
+                    x.insert(i);
+                    y.insert(j);
+                }
+            }
+        }
+
+        for (auto item : x) {
+            for (int j = 0; j < m; j ++ ) {
+                matrix[item][j] = 0;
+            }
+        }
+
+        for (auto item : y) {
+            for (int j = 0; j < n; j ++ ) {
+                matrix[j][item] = 0;
+            }
+        }
+
+    }
+};
+```
+
+
 
 ## 链表
 
@@ -468,6 +663,34 @@ public:
 
 
 
+## 图论
+
+## 回溯
+
+### [78. 子集](https://leetcode.cn/problems/subsets/)
+
+```c++
+class Solution {
+public:
+    vector<vector<int>> subsets(vector<int>& nums) {
+        vector<vector<int>> res;
+        for (int i = 0; i < (2 << (nums.size() - 1)); i ++ ) {
+            int tmp = i, idx = 0;
+            vector<int> a;
+            while(tmp) {
+                if(tmp & 1) a.push_back(nums[idx]);
+                tmp = tmp >> 1;
+                idx ++;
+            }
+            res.push_back(a);
+        }
+        return res;
+    }
+};
+```
+
+
+
 ## 栈
 
 ### [20. 有效的括号](https://leetcode.cn/problems/valid-parentheses/)
@@ -508,6 +731,22 @@ public:
 
 
 
+
+## 堆
+
+### [215. 数组中的第K个最大元素](https://leetcode.cn/problems/kth-largest-element-in-an-array/)
+
+```c++
+class Solution {
+public:
+    int findKthLargest(vector<int>& nums, int k) {
+        sort(nums.begin(), nums.end());
+        return nums[nums.size() - k];
+    }
+};
+```
+
+## 贪心算法
 
 ## 动态规划
 
@@ -684,7 +923,7 @@ public:
 };
 ```
 
-
+## 多维动态规划
 
 ## 技巧
 
@@ -717,6 +956,41 @@ public:
         for (int i = 0; i < n; i ++ ) {
             h[nums[i]] ++;
             if(h[nums[i]] > (n / 2)) return nums[i];
+        }
+        return 0;
+    }
+};
+```
+
+### [75. 颜色分类](https://leetcode.cn/problems/sort-colors/)
+
+```c++
+class Solution {
+public:
+    
+    void sortColors(vector<int>& nums) {
+        
+        for (int i = 0; i < nums.size(); i ++ ) {
+            int idx = i;
+            for (int j = i; j < nums.size(); j ++ ) {
+                if(nums[j] < nums[idx]) idx = j;
+            }
+            swap(nums[i], nums[idx]);
+        }
+    }
+};
+```
+
+### [287. 寻找重复数](https://leetcode.cn/problems/find-the-duplicate-number/)
+
+```c++
+class Solution {
+public:
+    int findDuplicate(vector<int>& nums) {
+        sort(nums.begin(), nums.end());
+        
+        for (int i = 0, j = 1; j < nums.size(); i ++, j ++ ) {
+            if(nums[i] == nums[j]) return nums[i];
         }
         return 0;
     }
