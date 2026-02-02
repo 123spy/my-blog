@@ -81,17 +81,17 @@ Netty 基于 NIO Selector 实现。一个 `EventLoop` 线程持有一个 `Select
 - **入站 (Inbound)**:  Socket -> Decoder(解码) -> BusinessHandler(业务)
 - **出站 (Outbound)**: BusinessHandler(业务) -> Encoder(编码) -> Socket
 
-------
+
 
 ## 7. ChannelHandlerContext (上下文)
 
 Handler 和 Pipeline 之间的桥梁。
 
-- `ctx.channel()`: 获取通道。
+- ctx.channel(): 获取通道。
 - `ctx.writeAndFlush(msg)`: 写数据（从当前位置流向 Pipeline 头部）。
 - `ctx.fireChannelRead(msg)`: 把数据传给下一个 Handler。
 
-------
+
 
 ## 8. ChannelOption (参数配置)
 
