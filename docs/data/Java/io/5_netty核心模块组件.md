@@ -64,11 +64,11 @@ Netty 基于 NIO Selector 实现。一个 `EventLoop` 线程持有一个 `Select
 
 ### 5.2 两个核心实现类对比
 
-| **特性**     | **ChannelInboundHandlerAdapter**                      | **SimpleChannelInboundHandler<T>**    |
-| ------------ | ----------------------------------------------------- | ------------------------------------- |
-| **场景**     | **中间环节** (如：自定义解码器、拦截器)               | **业务终点** (如：聊天逻辑、数据存储) |
-| **内存管理** | **手动** (必须手动 `ReferenceCountUtil.release(msg)`) | **自动** (Netty 自动帮你释放)         |
-| **类型转换** | 拿到的是 Object，需手动强转                           | 自动匹配泛型 `<T>`，无需强转          |
+| **特性**     | **ChannelInboundHandlerAdapter**                      | **SimpleChannelInboundHandler&lt;T&gt;** |
+| ------------ | ----------------------------------------------------- | ---------------------------------------- |
+| **场景**     | **中间环节** (如：自定义解码器、拦截器)               | **业务终点** (如：聊天逻辑、数据存储)    |
+| **内存管理** | **手动** (必须手动 `ReferenceCountUtil.release(msg)`) | **自动** (Netty 自动帮你释放)            |
+| **类型转换** | 拿到的是 Object，需手动强转                           | 自动匹配泛型 `<T>`，无需强转             |
 
 ------
 
@@ -145,9 +145,7 @@ Codec = Decoder (解码器) + Encoder (编码器)。它是特殊的 `ChannelHand
 
    - **原理**:
 
-     Java
-
-     ```
+     ```java
      // 自定义解码器示例
      public class MyObjectDecoder extends ByteToMessageDecoder {
          @Override
