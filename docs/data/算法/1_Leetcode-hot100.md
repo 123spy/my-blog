@@ -728,6 +728,28 @@ public:
 };
 ```
 
+### [739. 每日温度](https://leetcode.cn/problems/daily-temperatures/)
+
+```c++
+class Solution {
+public:
+    vector<int> dailyTemperatures(vector<int>& temperatures) {
+        stack<int> s;
+        vector<int> res(temperatures.size());
+        s.push(0);
+        for (int i = 1; i < temperatures.size(); i ++ ) {
+            while(s.size() && temperatures[s.top()] < temperatures[i]) {
+                int idx = s.top();
+                s.pop();
+                res[idx] = (i - idx);
+            }
+            s.push(i);
+        }
+        return res;
+    }
+};
+```
+
 
 
 
