@@ -1,99 +1,10 @@
-# JUC 深入讲义（完整版）
+# JUC
 
-> 版本说明
->
-> - 这份讲义以 **Java 21 的语言规范与并发 API 语义** 为主线。
-> - 涉及 `volatile`、`synchronized`、`Lock`、`AQS`、`ConcurrentHashMap`、线程池、`CompletableFuture` 等核心主题。
-> - 对于 **JDK 7 的 ConcurrentHashMap 分段锁**、**偏向锁/轻量级锁/重量级锁** 等内容，本文会明确区分：
->   - 哪些是今天仍然需要掌握的“通用并发思想”
->   - 哪些更多是 **HotSpot 历史实现细节**
-> - 关于偏向锁：HotSpot 在 **JDK 15 起默认禁用并弃用 biased locking**，并在 **JDK 18 起将相关选项废弃/忽略**。理解它仍有助于理解锁优化历史，但不要把它当成今天写业务代码时最核心的依赖点。
->
-> 阅读方式：
->
-> 这不是“背 API”的资料，而是一份试图把 **问题本质、语义规则、实现机制、工程实践** 串起来的讲义。你可以把它当成一本偏实战、偏底层的 JUC 入门到进阶书。
+## 可见性、原子性、有序性
 
----
+JUC 的绝大多数主题，最终都可以归结到三个基本问题：可见性（visibility）原子性（atomicity）有序性（ordering）
 
-# 目录
-
-- [第 1 章 为什么要学 JUC：并发编程的真正难点](#第-1-章-为什么要学-juc并发编程的真正难点)
-- [第 2 章 并发问题三件套：可见性、原子性、有序性](#第-2-章-并发问题三件套可见性原子性有序性)
-- [第 3 章 Java 内存模型 JMM：并发语义的总规则](#第-3-章-java-内存模型-jmm并发语义的总规则)
-- [第 4 章 happens-before：你推理并发正确性的唯一硬规则](#第-4-章-happens-before你推理并发正确性的唯一硬规则)
-- [第 5 章 volatile 全面深入：可见性、发布、重排序与内存屏障](#第-5-章-volatile-全面深入可见性发布重排序与内存屏障)
-- [第 6 章 synchronized 深入：对象头、Mark Word、monitor 与同步语义](#第-6-章-synchronized-深入对象头mark-wordmonitor-与同步语义)
-- [第 7 章 锁优化与锁状态：偏向锁、轻量级锁、重量级锁、自旋与锁膨胀](#第-7-章-锁优化与锁状态偏向锁轻量级锁重量级锁自旋与锁膨胀)
-- [第 8 章 CAS 与原子类：不加互斥锁，为什么也能做原子更新](#第-8-章-cas-与原子类不加互斥锁为什么也能做原子更新)
-- [第 9 章 AQS：JUC 大量同步器的骨架](#第-9-章-aqsjuc-大量同步器的骨架)
-- [第 10 章 Lock 与 ReentrantLock：比 synchronized 更显式也更灵活的锁](#第-10-章-lock-与-reentrantlock比-synchronized-更显式也更灵活的锁)
-- [第 11 章 Condition、wait/notify 与线程间通信](#第-11-章-conditionwaitnotify-与线程间通信)
-- [第 12 章 JUC 同步工具类：CountDownLatch、CyclicBarrier、Semaphore、Phaser、Exchanger](#第-12-章-juc-同步工具类countdownlatchcyclicbarriersemaphorephaserexchanger)
-- [第 13 章 读写锁与 StampedLock：读多写少场景如何优化](#第-13-章-读写锁与-stampedlock读多写少场景如何优化)
-- [第 14 章 阻塞队列与并发容器：从生产者消费者到线程池缓冲区](#第-14-章-阻塞队列与并发容器从生产者消费者到线程池缓冲区)
-- [第 15 章 ConcurrentHashMap 深入：JDK7 分段锁、JDK8 桶级并发、扩容与树化](#第-15-章-concurrenthashmap-深入jdk7-分段锁jdk8-桶级并发扩容与树化)
-- [第 16 章 线程池全景：Executor、Executors、ThreadPoolExecutor、ScheduledThreadPoolExecutor、ForkJoinPool](#第-16-章-线程池全景executorexecutorsthreadpoolexecutorscheduledthreadpoolexecutorforkjoinpool)
-- [第 17 章 线程池参数设计与线上问题：不是会配，而是会控制风险](#第-17-章-线程池参数设计与线上问题不是会配而是会控制风险)
-- [第 18 章 Future、FutureTask、CompletableFuture：从异步结果到异步编排](#第-18-章-futurefuturetaskcompletablefuture从异步结果到异步编排)
-- [第 19 章 ForkJoin 框架与工作窃取](#第-19-章-forkjoin-框架与工作窃取)
-- [第 20 章 并发设计模式：线程封闭、不可变、生产者消费者、背压、隔离](#第-20-章-并发设计模式线程封闭不可变生产者消费者背压隔离)
-- [第 21 章 死锁、活锁、饥饿、伪共享与并发故障排查](#第-21-章-死锁活锁饥饿伪共享与并发故障排查)
-- [第 22 章 高频面试题：不是背答案，而是按原理回答](#第-22-章-高频面试题不是背答案而是按原理回答)
-- [第 23 章 学习路径与实践路线图](#第-23-章-学习路径与实践路线图)
-- [附录 A 推荐阅读与官方资料](#附录-a-推荐阅读与官方资料)
-- [附录 B 一个建议长期保留的线程池模板](#附录-b-一个建议长期保留的线程池模板)
-- [附录 C 一个建议长期保留的 CompletableFuture 聚合模板](#附录-c-一个建议长期保留的-completablefuture-聚合模板)
-
----
-
-# 第 1 章 为什么要学 JUC：并发编程的真正难点
-
-很多人把 JUC 理解成“Java 多线程 API 包”。这个说法不算错，但太浅。
-
-JUC 真正处理的是一个更本质的问题：
-
-> 当多个执行流同时读写共享状态时，怎样让程序既正确，又尽量高效，而且在工程上可控。
-
-这里有三个关键词：
-
-1. **正确**：结果不能错。
-2. **高效**：不能一上来就把所有东西全串行化。
-3. **可控**：压力上来时系统不能直接失控。
-
-单线程编程里，你写的代码顺序通常就接近你脑中的执行顺序。多线程里，情况变了：
-
-- 不同线程对共享变量的观察可能不同步。
-- 代码在机器层面不一定按你写的顺序暴露给其他线程。
-- 同一个变量可能被多个线程基于旧值同时修改。
-- 哪个线程先跑到哪里，往往取决于调度和时机，而不是你写代码时的直觉。
-
-因此，并发编程真正难的地方不是“类太多”，而是：
-
-> 程序结果不再只由代码文本决定，还由线程之间的交错时序决定。
-
-JUC 学到后面，真正有价值的不是你记住了多少类名，而是你会形成一套判断框架：
-
-- 这里有没有共享状态？
-- 共享状态有没有同步规则保护？
-- 我需要的是可见性、原子性、顺序约束，还是线程协作？
-- 当前方案的性能代价是什么？
-- 压力变大时系统会怎样退化？
-
-这套判断力，比单纯背 API 重要得多。
-
----
-
-# 第 2 章 并发问题三件套：可见性、原子性、有序性
-
-JUC 的绝大多数主题，最终都可以归结到三个基本问题：
-
-- 可见性（visibility）
-- 原子性（atomicity）
-- 有序性（ordering）
-
-这三个词如果只是背定义，几乎没有用。真正重要的是明白它们分别在现实里会以什么样的 bug 形式出现。
-
-## 2.1 可见性：修改发生了，但别人没及时看到
+### 可见性
 
 看下面这个例子：
 
@@ -129,7 +40,7 @@ class Demo {
 
 并发里很多 bug，不是逻辑推导错了，而是一个线程活在“旧世界”里。
 
-## 2.2 原子性：看起来一行，实际上是多步
+### 原子性
 
 再看一个更常见的例子：
 
@@ -160,7 +71,7 @@ count++;
 
 > 某一组逻辑，要么整体完成，要么根本不暴露中间态给其他线程破坏。
 
-## 2.3 有序性：机器可不可以不按你写的顺序来
+### 有序性
 
 程序员写代码有顺序，但编译器和 CPU 为了优化性能，会在不违反单线程语义的前提下进行重排序。
 
@@ -189,19 +100,9 @@ instance = new Singleton();
 
 这就是有序性问题。
 
-## 2.4 三者关系
-
-这三个问题经常同时出现，但它们不是一回事：
-
-- 可见性关心：**别人能不能看到我做过的事**
-- 原子性关心：**我这组动作会不会被中途打断**
-- 有序性关心：**别人看到的顺序是不是我想要的顺序**
-
-JUC 里的绝大多数工具，本质上都在以不同方式回答这三类问题。
-
 ---
 
-# 第 3 章 Java 内存模型 JMM：并发语义的总规则
+## 第 3 章 JMM
 
 很多人学 JMM 时最大的误区，是把它当成 JVM 内存结构图来背。实际上，JMM 不是讲堆、栈、方法区，也不是让你背“主内存/工作内存”几个名词就完事。
 
@@ -209,9 +110,9 @@ JMM（Java Memory Model）真正要回答的问题是：
 
 > 在 Java 里，多线程程序对共享变量的读写，什么行为是有保证的，什么行为是没有保证的。
 
-它是并发语义的总规则，而不是一张结构示意图。
+**它是并发语义的总规则**，而不是一张结构示意图。
 
-## 3.1 为什么必须有 JMM
+### 3.1 为什么必须有 JMM
 
 不同硬件平台的内存模型、缓存一致性协议、处理器指令执行方式并不相同。编译器也会做不同优化。如果 Java 语言层不定义统一并发语义，那么同样一段并发代码可能在不同机器上表现不同。
 
@@ -223,7 +124,7 @@ JMM 的目的就是：
 
 也就是说，JMM 是语言层面对多线程“交通规则”的定义。
 
-## 3.2 主内存 / 工作内存模型应该怎么理解
+### 3.2 主内存 / 工作内存模型应该怎么理解
 
 JMM 常用一个抽象模型帮助理解：
 
@@ -244,7 +145,7 @@ JMM 常用一个抽象模型帮助理解：
 
 注意，这个“工作内存”是语义抽象，不要机械地把它等同于某一块物理硬件内存。
 
-## 3.3 JMM 解决哪些问题，不解决哪些问题
+### 3.3 JMM 解决哪些问题，不解决哪些问题
 
 JMM 主要解决：
 
@@ -263,7 +164,7 @@ JMM 主要解决：
 
 ---
 
-# 第 4 章 happens-before：你推理并发正确性的唯一硬规则
+## 第 4 章 happens-before
 
 如果说 JMM 里只能记一个最重要的概念，那就是 **happens-before**。
 
@@ -276,7 +177,7 @@ JMM 主要解决：
 1. **可见性**：A 的结果 B 能看见
 2. **顺序约束**：B 不能把对 A 的依赖建立在一个违反规则的顺序上
 
-## 4.1 为什么需要 happens-before
+### 4.1 为什么需要 happens-before
 
 真实机器执行并发程序时，存在：
 
@@ -296,15 +197,15 @@ happens-before 的价值就在于：
 
 没有 happens-before 的地方，你就不能靠“应该吧”来推理。
 
-## 4.2 几条必须真正掌握的规则
+### 4.2 几条必须真正掌握的规则
 
-### 规则一：程序次序规则
+#### 规则一：程序次序规则
 
 在同一个线程中，前面的操作 happens-before 后面的操作。
 
 这条规则让单线程内部逻辑仍然可推理。
 
-### 规则二：监视器锁规则
+#### 规则二：监视器锁规则
 
 对同一把锁的解锁，happens-before 后续对这把锁的加锁。
 
@@ -315,27 +216,27 @@ happens-before 的价值就在于：
 
 所以锁不仅是互斥工具，还是内存同步工具。
 
-### 规则三：volatile 变量规则
+#### 规则三：volatile 变量规则
 
 对一个 `volatile` 变量的写，happens-before 后续对该变量的读。
 
 这就是为什么 `volatile` 能做状态发布。
 
-### 规则四：线程启动规则
+#### 规则四：线程启动规则
 
 主线程在调用 `Thread.start()` 之前做的事情，对新线程可见。
 
-### 规则五：线程终止规则
+#### 规则五：线程终止规则
 
 线程中的操作，对其他线程从 `join()` 返回后可见。
 
-### 规则六：传递性
+#### 规则六：传递性
 
 如果 A happens-before B，B happens-before C，那么 A happens-before C。
 
 这条规则非常重要，因为很多复杂同步关系都是靠传递性串起来的。
 
-## 4.3 如何用 happens-before 判断代码是否可靠
+### 4.3 如何用 happens-before 判断代码是否可靠
 
 真正的用法不是背条目，而是问自己：
 
@@ -349,7 +250,7 @@ happens-before 的价值就在于：
 
 ---
 
-# 第 5 章 volatile 全面深入：可见性、发布、重排序与内存屏障
+## 第 5 章 volatile
 
 `volatile` 是并发里最常被误用的关键字之一。很多人只记得一句：
 
@@ -368,7 +269,7 @@ happens-before 的价值就在于：
 - 不适合多步骤条件更新
 - 不能替代锁和 CAS
 
-## 5.1 volatile 适合解决什么问题
+### 5.1 volatile 适合解决什么问题
 
 最典型场景是状态标记：
 
@@ -395,7 +296,7 @@ class Worker {
 
 而不是复合更新。
 
-## 5.2 volatile 为什么能保证可见性
+### 5.2 volatile 为什么能保证可见性
 
 JMM 对 volatile 读写赋予了特殊语义。粗略说：
 
@@ -412,7 +313,7 @@ JMM 对 volatile 读写赋予了特殊语义。粗略说：
 
 这意味着只要线程 B 看到了这次写，就应该也能看到在这次写之前由线程 A 完成的相关结果（前提是这些结果位于允许被这次发布语义涵盖的边界之内）。
 
-## 5.3 volatile 为什么还能限制重排序
+### 5.3 volatile 为什么还能限制重排序
 
 必须特别强调：
 
@@ -449,7 +350,7 @@ if (flag) { // volatile 读
 
 一旦读到了 `flag == true`，后续对 `x`、`y` 的读取就必须建立在这个已同步的视图之上。
 
-## 5.4 内存屏障到底在做什么
+### 5.4 内存屏障到底在做什么
 
 “内存屏障”这个词很容易被讲得很神秘。其实你不需要先去背某个 CPU 平台具体指令名，但必须理解它的作用。
 
@@ -470,7 +371,7 @@ if (flag) { // volatile 读
 
 > volatile 的实现并不是“关键字自带神力”，而是 JVM 在生成机器码时，通过屏障语义把 JMM 的规则落到硬件执行层。
 
-## 5.5 volatile 经典用法：安全发布一个状态边界
+### 5.5 volatile 经典用法：安全发布一个状态边界
 
 看这个模式：
 
@@ -501,7 +402,7 @@ class Holder {
 
 这是 volatile 最常见、也最应该掌握的模式之一。
 
-## 5.6 为什么 volatile 不能保证 count++ 原子性
+### 5.6 为什么 volatile 不能保证 count++ 原子性
 
 下面代码仍然不安全：
 
@@ -531,7 +432,7 @@ void incr() {
 
 而不是单靠 volatile。
 
-## 5.7 双重检查单例为什么必须配合 volatile
+### 5.7 双重检查单例为什么必须配合 volatile
 
 ```java
 class Singleton {
@@ -559,7 +460,7 @@ class Singleton {
 
 如果不加 volatile，双重检查可能拿到“半初始化对象”。
 
-## 5.8 volatile 的适用边界
+### 5.8 volatile 的适用边界
 
 适合：
 
@@ -579,7 +480,7 @@ class Singleton {
 
 ---
 
-# 第 6 章 synchronized 深入：对象头、Mark Word、monitor 与同步语义
+## 第 6 章 synchronized
 
 `synchronized` 经常被讲成“Java 的内置锁”。这当然对，但还不够。想真正理解它，你至少要把下面几层串起来：
 
@@ -587,13 +488,13 @@ class Singleton {
 2. JMM 层：解锁/加锁会建立 happens-before
 3. HotSpot 运行时层：对象头、Mark Word、monitor、锁状态优化
 
-## 6.1 synchronized 锁住的到底是什么
+### 6.1 synchronized 锁住的到底是什么
 
 `synchronized` 锁住的不是“代码文本”，而是 **某个对象关联的监视器语义**。
 
 三种常见写法：
 
-### 修饰实例方法
+#### 修饰实例方法
 
 ```java
 public synchronized void incr() {
@@ -603,7 +504,7 @@ public synchronized void incr() {
 
 锁的是 `this`。
 
-### 修饰静态方法
+#### 修饰静态方法
 
 ```java
 public static synchronized void test() {
@@ -612,7 +513,7 @@ public static synchronized void test() {
 
 锁的是当前类的 `Class` 对象。
 
-### 修饰代码块
+#### 修饰代码块
 
 ```java
 synchronized (lock) {
@@ -626,7 +527,7 @@ synchronized (lock) {
 
 > 多个线程竞争的是不是同一把锁。
 
-## 6.2 synchronized 为什么能保证原子性
+### 6.2 synchronized 为什么能保证原子性
 
 `count++` 本身不是原子操作，但：
 
@@ -645,7 +546,7 @@ public synchronized void incr() {
 
 > 通过互斥，保证整段逻辑不被并发交错破坏。
 
-## 6.3 synchronized 为什么还能保证可见性
+### 6.3 synchronized 为什么还能保证可见性
 
 很多人只记住“锁能防止同时进来”，但忽略了锁也会建立可见性。
 
@@ -664,7 +565,7 @@ public synchronized void incr() {
 1. 互斥访问
 2. 内存同步
 
-## 6.4 wait/notify 为什么必须配合 synchronized
+### 6.4 wait/notify 为什么必须配合 synchronized
 
 `wait()`、`notify()`、`notifyAll()` 不是独立于锁体系的“另外一组工具”，它们本来就依附于 monitor 语义。
 
@@ -673,7 +574,7 @@ public synchronized void incr() {
 
 因此调用这些方法时，必须已经持有对应对象的监视器，否则会抛 `IllegalMonitorStateException`。
 
-## 6.5 HotSpot 里的对象头与 Mark Word
+### 6.5 HotSpot 里的对象头与 Mark Word
 
 从实现角度看，HotSpot 对象通常包含：
 
@@ -695,7 +596,7 @@ public synchronized void incr() {
 
 ---
 
-# 第 7 章 锁优化与锁状态：偏向锁、轻量级锁、重量级锁、自旋与锁膨胀
+## 第 7 章 锁优化与锁状态
 
 这一章很容易被写成“术语表演”。真正应该抓住的核心问题是：
 
@@ -719,7 +620,7 @@ public synchronized void incr() {
 - 锁膨胀
 - 适应性优化
 
-## 7.1 偏向锁：优化“总是同一个线程拿锁”的场景
+### 7.1 偏向锁：优化“总是同一个线程拿锁”的场景
 
 偏向锁的设计动机是：
 
@@ -727,21 +628,21 @@ public synchronized void incr() {
 
 于是 JVM 会尝试把这把锁“偏向”某个线程。以后如果还是同一个线程进来，就不必每次都做昂贵竞争动作。
 
-### 关键理解
+#### 关键理解
 
 偏向锁优化的不是“激烈竞争”，而是：
 
 - 几乎没有竞争
 - 同一线程频繁进入相同同步块
 
-### 现实提醒
+#### 现实提醒
 
 HotSpot 自 **JDK 15** 起默认禁用并弃用 biased locking，并在 **JDK 18** 起将相关选项废弃/忽略。因此：
 
 - 作为理解 JVM 锁优化历史，它仍值得知道
 - 作为今天业务代码调优的核心抓手，它已经不再是重点
 
-## 7.2 轻量级锁：优化“短时竞争，不值得立刻阻塞”
+### 7.2 轻量级锁：优化“短时竞争，不值得立刻阻塞”
 
 如果不再是单线程独占场景，但竞争仍比较轻，JVM 会尽量避免直接进入重量级阻塞。
 
@@ -754,7 +655,7 @@ HotSpot 自 **JDK 15** 起默认禁用并弃用 biased locking，并在 **JDK 18
 
 > 用少量用户态尝试，换取避免 OS 级别阻塞与唤醒的高成本。
 
-## 7.3 重量级锁：真正进入阻塞互斥
+### 7.3 重量级锁：真正进入阻塞互斥
 
 当竞争升级到轻量级机制也不划算时，锁会膨胀为重量级锁。
 
@@ -770,9 +671,9 @@ HotSpot 自 **JDK 15** 起默认禁用并弃用 biased locking，并在 **JDK 18
 
 > 在激烈竞争下，更合适，但代价更大。
 
-## 7.4 自旋与适应性自旋
+### 7.4 自旋与适应性自旋
 
-### 自旋是什么
+#### 自旋是什么
 
 线程发现锁被占用时，不立即挂起，而是先循环尝试几次，看持锁线程会不会很快释放。
 
@@ -782,22 +683,22 @@ HotSpot 自 **JDK 15** 起默认禁用并弃用 biased locking，并在 **JDK 18
 - 那我不如先等一小会儿
 - 因为阻塞/唤醒太贵
 
-### 自旋什么时候值得
+#### 自旋什么时候值得
 
 当临界区很短、竞争很轻时，自旋通常划算。
 
-### 自旋什么时候不值得
+#### 自旋什么时候不值得
 
 如果临界区很长、竞争很重，自旋就是白烧 CPU。
 
-### 适应性自旋
+#### 适应性自旋
 
 JVM 可能根据历史行为动态调整自旋策略：
 
 - 某把锁过去经常自旋几次就拿到，那更值得继续试
 - 某把锁过去总是竞争激烈，那就别浪费时间自旋了
 
-## 7.5 锁膨胀与“锁升级”到底是什么意思
+### 7.5 锁膨胀与“锁升级”到底是什么意思
 
 很多资料喜欢写：
 
@@ -815,15 +716,15 @@ JVM 可能根据历史行为动态调整自旋策略：
 
 也就是说，升级不是为了炫技，而是为了让锁成本与竞争强度匹配。
 
-## 7.6 锁降级：不要把两个概念混在一起
+### 7.6 锁降级：不要把两个概念混在一起
 
 “锁降级”这个词常被混用，必须分清：
 
-### 含义一：JVM 锁状态层面的回退
+#### 含义一：JVM 锁状态层面的回退
 
 在偏向/轻量/重量这套实现里，讨论重点通常是膨胀升级，而不是在同一竞争上下文里自由来回切换。不要把它想象成“电梯自由升降”。
 
-### 含义二：读写锁语义里的锁降级
+#### 含义二：读写锁语义里的锁降级
 
 这是工程里更常见、也更明确的概念。
 
@@ -838,11 +739,50 @@ JVM 可能根据历史行为动态调整自旋策略：
 
 > 从独占写过渡到共享读，以便在保持读一致性的同时放开其他读者进入。
 
+问题出在哪里？
+
+假设线程A执行到第2步（刚释放写锁），线程B立刻拿到写锁并修改了销量。然后线程A再去读，读到的已经是线程B修改后的数据，而不是自己刚更新的数据。
+
 这和 HotSpot 对象头里的锁状态演进不是一回事。
+
+错误的写法（没有锁降级）
+
+```java
+class SalesService {
+    private int dailySales = 0;  // 今日销量
+    private boolean dataReady = false;  // 数据是否准备好
+    private final ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
+    
+    // 更新销量的方法（写操作）
+    public void updateSales(int newSale) {
+        lock.writeLock().lock();
+        try {
+            // 1. 更新销量
+            dailySales += newSale;
+            System.out.println("更新后销量: " + dailySales);
+            
+            // 2. 释放写锁！！！
+            // 就在这一瞬间，问题可能发生
+            
+        } finally {
+            lock.writeLock().unlock();  // 写锁已释放
+        }
+        
+        // 3. 想再读取确认一下（用读锁）
+        lock.readLock().lock();
+        try {
+            // 问题：此时另一个线程可能已经修改了数据！
+            System.out.println("确认当前销量: " + dailySales);
+        } finally {
+            lock.readLock().unlock();
+        }
+    }
+}
+```
 
 ---
 
-# 第 8 章 CAS 与原子类：不加互斥锁，为什么也能做原子更新
+## 第 8 章 CAS 与原子类
 
 锁的思路是“先互斥，再操作”。CAS 的思路不一样：
 
@@ -850,7 +790,7 @@ JVM 可能根据历史行为动态调整自旋策略：
 
 这叫 **乐观并发控制**。
 
-## 8.1 CAS 的核心语义
+### 8.1 CAS 的核心语义
 
 CAS = Compare And Set / Compare And Swap。
 
@@ -874,15 +814,15 @@ if (value == expected) {
 - 硬件原子指令
 - 失败重试机制
 
-## 8.2 CAS 与加锁的本质区别
+### 8.2 CAS 与加锁的本质区别
 
-### 锁
+#### 锁
 
 悲观思想：
 
 > 我先把别人挡在外面，里面怎么改都安全。
 
-### CAS
+#### CAS
 
 乐观思想：
 
@@ -894,7 +834,7 @@ if (value == expected) {
 - 不会一上来就阻塞线程
 - 高冲突时可能大量自旋重试
 
-## 8.3 AtomicInteger 为什么线程安全
+### 8.3 AtomicInteger 为什么线程安全
 
 ```java
 AtomicInteger counter = new AtomicInteger(0);
@@ -912,7 +852,7 @@ counter.incrementAndGet();
 
 > 把竞争从阻塞等待变成了失败重试。
 
-## 8.4 ABA 问题
+### 8.4 ABA 问题
 
 CAS 只关心“现在的值是不是我期望的值”，不关心中间经历了什么。
 
@@ -925,28 +865,28 @@ CAS 只关心“现在的值是不是我期望的值”，不关心中间经历�
 
 这就是 ABA 问题。
 
-### 解决办法
+#### 解决办法
 
 给值附加版本信息：
 
 - `AtomicStampedReference`
 - `AtomicMarkableReference`
 
-## 8.5 CAS 不是银弹
+### 8.5 CAS 不是银弹
 
-### 问题一：高冲突下自旋耗 CPU
+#### 问题一：高冲突下自旋耗 CPU
 
 竞争很激烈时，大量线程会反复失败重试，CPU 会浪费在自旋上。
 
-### 问题二：天然更适合单变量原子更新
+#### 问题二：天然更适合单变量原子更新
 
 如果你要同时维护多个变量之间的一致性，CAS 会迅速复杂化。
 
-### 问题三：不是所有逻辑都适合乐观重试
+#### 问题三：不是所有逻辑都适合乐观重试
 
 有些逻辑代价很高，重试成本无法接受，这时锁反而更合适。
 
-## 8.6 LongAdder 为什么高并发计数更强
+### 8.6 LongAdder 为什么高并发计数更强
 
 `AtomicLong` 所有线程都争同一个值，高并发下 CAS 冲突会很多。
 
@@ -964,7 +904,7 @@ CAS 只关心“现在的值是不是我期望的值”，不关心中间经历�
 - 获取总值需要汇总
 - 更适合高吞吐计数，而不是强调一个绝对瞬时单点值
 
-## 8.7 Unsafe、VarHandle 与原子类实现思路
+### 8.7 Unsafe、VarHandle 与原子类实现思路
 
 历史上很多原子类底层借助 `Unsafe` 完成偏底层原子操作。现代 Java 中也引入了 `VarHandle` 作为更标准化的底层访问手段。
 
@@ -974,7 +914,7 @@ CAS 只关心“现在的值是不是我期望的值”，不关心中间经历�
 
 ---
 
-# 第 9 章 AQS：JUC 大量同步器的骨架
+## 第 9 章 AQS
 
 如果你把 `ReentrantLock`、`CountDownLatch`、`Semaphore`、`ReentrantReadWriteLock` 看成一堆散乱工具，那你对 JUC 的理解会一直停留在表层。
 
@@ -982,7 +922,7 @@ CAS 只关心“现在的值是不是我期望的值”，不关心中间经历�
 
 **AbstractQueuedSynchronizer**。
 
-## 9.1 AQS 要解决什么问题
+### 9.1 AQS 要解决什么问题
 
 如果没有统一框架，每种同步器都要自己解决：
 
@@ -998,7 +938,7 @@ CAS 只关心“现在的值是不是我期望的值”，不关心中间经历�
 - 用等待队列管理获取失败的线程
 - 上层同步器只需要定义“什么时候算获取成功/释放成功”
 
-## 9.2 state：AQS 的核心状态位
+### 9.2 state：AQS 的核心状态位
 
 AQS 内部维护一个 `int state`。不同同步器对它的含义不同：
 
@@ -1009,9 +949,9 @@ AQS 内部维护一个 `int state`。不同同步器对它的含义不同：
 
 所以 AQS 并不关心“state 到底是什么业务含义”，它只提供管理状态和队列的基础设施。
 
-## 9.3 独占模式与共享模式
+### 9.3 独占模式与共享模式
 
-### 独占模式
+#### 独占模式
 
 同一时刻只能有一个线程成功获取。
 
@@ -1019,7 +959,7 @@ AQS 内部维护一个 `int state`。不同同步器对它的含义不同：
 
 - `ReentrantLock`
 
-### 共享模式
+#### 共享模式
 
 同一时刻允许多个线程共享获取。
 
@@ -1031,7 +971,7 @@ AQS 内部维护一个 `int state`。不同同步器对它的含义不同：
 
 理解这两个模式后，很多同步器就不再零散。
 
-## 9.4 AQS 队列的核心思想
+### 9.4 AQS 队列的核心思想
 
 如果线程获取资源失败，不会无意义地一直硬试，而是进入等待队列。
 
@@ -1047,7 +987,7 @@ AQS 的设计重点不在“排队”两个字，而在：
 
 > 用统一的排队、阻塞、唤醒机制，支撑不同类型同步器。
 
-## 9.5 为什么说 AQS 是 JUC 的骨架
+### 9.5 为什么说 AQS 是 JUC 的骨架
 
 因为你后面看到的很多工具，其本质只是：
 
@@ -1061,11 +1001,11 @@ AQS 的设计重点不在“排队”两个字，而在：
 
 ---
 
-# 第 10 章 Lock 与 ReentrantLock：比 synchronized 更显式也更灵活的锁
+## 第 10 章 Lock & ReentrantLock
 
 `synchronized` 足够基础也足够重要，但它不是所有场景都最合适。`Lock` 体系存在的原因，是它提供了更灵活的控制能力。
 
-## 10.1 为什么已经有 synchronized，还要有 Lock
+### 10.1 为什么已经有 synchronized，还要有 Lock
 
 `synchronized` 的问题不在于“不够安全”，而在于功能相对固定：
 
@@ -1082,7 +1022,7 @@ AQS 的设计重点不在“排队”两个字，而在：
 - 多个 `Condition`
 - 公平/非公平策略选择
 
-## 10.2 可重入到底是什么
+### 10.2 可重入到底是什么
 
 可重入的意思是：
 
@@ -1095,7 +1035,7 @@ AQS 的设计重点不在“排队”两个字，而在：
 - 由哪个线程持有
 - 当前线程重入了几次
 
-## 10.3 ReentrantLock 的基本结构
+### 10.3 ReentrantLock 的基本结构
 
 `ReentrantLock` 底层基于 AQS。它内部通过同步器维护：
 
@@ -1103,9 +1043,9 @@ AQS 的设计重点不在“排队”两个字，而在：
 - state 表示重入次数
 - 获取失败线程进入 AQS 队列
 
-## 10.4 公平锁与非公平锁
+### 10.4 公平锁与非公平锁
 
-### 非公平锁
+#### 非公平锁
 
 允许插队。只要时机合适，后来线程也可能先拿到锁。
 
@@ -1114,7 +1054,7 @@ AQS 的设计重点不在“排队”两个字，而在：
 - 吞吐更高
 - 减少严格排队带来的额外开销
 
-### 公平锁
+#### 公平锁
 
 大体按等待顺序获取。
 
@@ -1129,7 +1069,7 @@ AQS 的设计重点不在“排队”两个字，而在：
 
 工程上通常默认非公平，除非你确实有顺序公平需求。
 
-## 10.5 tryLock 的意义
+### 10.5 tryLock 的意义
 
 `tryLock()` 的价值不在“能不能少打一行代码”，而在于它改变了系统在竞争失败时的退化方式。
 
@@ -1144,7 +1084,7 @@ AQS 的设计重点不在“排队”两个字，而在：
 
 这在高并发系统里非常有价值，因为等待本身也是资源消耗。
 
-## 10.6 lockInterruptibly 的意义
+### 10.6 lockInterruptibly 的意义
 
 `synchronized` 等锁时不容易优雅响应取消。`lockInterruptibly()` 可以让线程在等待锁时响应中断。
 
@@ -1155,7 +1095,7 @@ AQS 的设计重点不在“排队”两个字，而在：
 - 优雅停机
 - 防止线程无限卡死
 
-## 10.7 为什么 unlock 必须放 finally
+### 10.7 为什么 unlock 必须放 finally
 
 `Lock` 是显式锁：
 
@@ -1177,7 +1117,7 @@ try {
 
 ---
 
-# 第 11 章 Condition、wait/notify 与线程间通信
+## 第 11 章 线程间通信
 
 线程同步不仅仅是“互斥”，还包括“协作”。
 
@@ -1187,7 +1127,7 @@ try {
 - 缓冲区满了，生产者要等
 - 条件变化后，要唤醒正确的线程
 
-## 11.1 wait/notify 的本质
+### 11.1 wait/notify 的本质
 
 `wait()` / `notify()` / `notifyAll()` 依附于 monitor：
 
@@ -1195,7 +1135,7 @@ try {
 - `notify()`：随机唤醒等待集中的一个线程
 - `notifyAll()`：唤醒所有等待线程
 
-### 为什么 wait 必须写在 while 里
+#### 为什么 wait 必须写在 while 里
 
 这是最容易被草率带过，但必须真正吃透的点。
 
@@ -1224,7 +1164,7 @@ while (count == 0) {
 
 > 线程从等待中返回，不代表条件就一定满足，必须重新检查。
 
-## 11.2 Condition 的价值：把等待条件对象化
+### 11.2 Condition 的价值：把等待条件对象化
 
 `Condition` 是 `Lock` 体系里的条件队列。它比 `wait/notify` 更强的地方在于：
 
@@ -1239,7 +1179,7 @@ while (count == 0) {
 
 这样生产者只唤醒消费者，消费者只唤醒生产者，而不是一股脑 `notifyAll()`。
 
-## 11.3 一个标准的有界缓冲区骨架
+### 11.3 一个标准的有界缓冲区骨架
 
 ```java
 class BoundedBuffer<T> {
@@ -1297,11 +1237,11 @@ class BoundedBuffer<T> {
 
 ---
 
-# 第 12 章 JUC 同步工具类：CountDownLatch、CyclicBarrier、Semaphore、Phaser、Exchanger
+## 第 12 章 JUC 同步工具类
 
 这些类经常被记成“几个名字”，但真正应该掌握的是它们分别在解决哪种协作模型。
 
-## 12.1 CountDownLatch：一个等多个
+### 12.1 CountDownLatch：一个等多个
 
 适合的模型是：
 
@@ -1315,19 +1255,19 @@ class BoundedBuffer<T> {
 
 全部完成后主线程才能继续。
 
-### 核心语义
+#### 核心语义
 
 - 初始化一个计数值
 - 每完成一个任务就 `countDown()`
 - 计数归零时，`await()` 的线程继续执行
 
-### 特点
+#### 特点
 
 - 更像“一次性闸门”
 - 计数通常只减不增
 - 很适合阶段完成通知
 
-## 12.2 CyclicBarrier：多个线程互相等
+### 12.2 CyclicBarrier：多个线程互相等
 
 适合模型：
 
@@ -1340,7 +1280,7 @@ class BoundedBuffer<T> {
 
 屏障动作还可以附带一个 barrier action，在所有参与者到齐后执行。
 
-## 12.3 Semaphore：控制并发度，而不是互斥
+### 12.3 Semaphore：控制并发度，而不是互斥
 
 `Semaphore` 维护的是一组许可（permit）。
 
@@ -1357,7 +1297,7 @@ class BoundedBuffer<T> {
 
 所以它本质上是并发度控制器，而不是普通互斥锁。
 
-## 12.4 Phaser：更灵活的多阶段协调器
+### 12.4 Phaser：更灵活的多阶段协调器
 
 `Phaser` 可以看成 `CountDownLatch` 和 `CyclicBarrier` 的增强版：
 
@@ -1372,7 +1312,7 @@ class BoundedBuffer<T> {
 
 的多阶段任务。
 
-## 12.5 Exchanger：成对交换数据
+### 12.5 Exchanger：成对交换数据
 
 `Exchanger` 的使用频率没那么高，但模型很清晰：
 
@@ -1380,7 +1320,7 @@ class BoundedBuffer<T> {
 
 适合某些配对协作场景。
 
-## 12.6 它们与 AQS 的关系
+### 12.6 它们与 AQS 的关系
 
 这些工具很多底层都可以用 AQS 的独占/共享队列思想来理解：
 
@@ -1390,9 +1330,7 @@ class BoundedBuffer<T> {
 
 理解 AQS 后，你会发现这些工具不是零散 API，而是不同同步语义的具体实现。
 
----
-
-# 第 13 章 读写锁与 StampedLock：读多写少场景如何优化
+## 第 13 章 读写锁 & StampedLock
 
 互斥锁的一个问题是：
 
@@ -1400,7 +1338,7 @@ class BoundedBuffer<T> {
 
 这会把本来可以并行的读操作强行串行化。于是就有了读写锁。
 
-## 13.1 ReentrantReadWriteLock 的核心思想
+### 13.1 ReentrantReadWriteLock 的核心思想
 
 - 读锁可共享
 - 写锁独占
@@ -1416,14 +1354,14 @@ class BoundedBuffer<T> {
 - 配置查询
 - 读远多于写的数据结构
 
-## 13.2 公平性与吞吐权衡
+### 13.2 公平性与吞吐权衡
 
 `ReentrantReadWriteLock` 支持公平/非公平策略。默认通常是非公平。
 
 - 非公平：吞吐更高
 - 公平：更接近排队顺序，但开销更大
 
-## 13.3 写锁降级为读锁
+### 13.3 写锁降级为读锁
 
 一个经典模式：
 
@@ -1439,11 +1377,11 @@ class BoundedBuffer<T> {
 
 这就是工程上常说的“锁降级”。
 
-## 13.4 读锁升级为写锁为什么危险
+### 13.4 读锁升级为写锁为什么危险
 
 反过来从读锁直接升级为写锁，通常很危险，因为可能导致死锁或复杂等待条件。`ReentrantReadWriteLock` 不提供那种你以为的“安全自动升级”。
 
-## 13.5 StampedLock：更现代的读优化思路
+### 13.5 StampedLock：更现代的读优化思路
 
 `StampedLock` 提供三种模式：
 
@@ -1451,7 +1389,7 @@ class BoundedBuffer<T> {
 - 悲观读锁
 - 乐观读
 
-### 乐观读是什么
+#### 乐观读是什么
 
 不是先真正加读锁，而是先拿一个戳记（stamp），用它来验证在读取期间有没有写发生。
 
@@ -1462,11 +1400,11 @@ class BoundedBuffer<T> {
 - 读取逻辑短
 - 能接受“先乐观读，最后验证”的模式
 
-### 优点
+#### 优点
 
 - 读多写少时性能可能很好
 
-### 代价与风险
+#### 代价与风险
 
 - API 更复杂
 - 不是可重入锁
@@ -1479,11 +1417,11 @@ class BoundedBuffer<T> {
 
 ---
 
-# 第 14 章 阻塞队列与并发容器：从生产者消费者到线程池缓冲区
+## 第 14 章 阻塞队列与并发容器
 
 阻塞队列是 JUC 里极其重要的一层。它不仅用于生产者消费者，还直接构成线程池行为的一部分。
 
-## 14.1 BlockingQueue 的价值到底是什么
+### 14.1 BlockingQueue 的价值到底是什么
 
 普通队列只能表达：
 
@@ -1499,28 +1437,28 @@ class BoundedBuffer<T> {
 
 `BlockingQueue` 就是把这些语义统一包装起来。
 
-## 14.2 四组 API 的思维方式
+### 14.2 四组 API 的思维方式
 
 不要死背方法名，而要按“失败时怎么办”来理解：
 
-### 抛异常
+#### 抛异常
 
 - `add`
 - `remove`
 - `element`
 
-### 返回特殊值
+#### 返回特殊值
 
 - `offer`
 - `poll`
 - `peek`
 
-### 阻塞等待
+#### 阻塞等待
 
 - `put`
 - `take`
 
-### 超时等待
+#### 超时等待
 
 - `offer(timeout)`
 - `poll(timeout)`
@@ -1529,7 +1467,7 @@ class BoundedBuffer<T> {
 
 > 我希望失败时是抛错、返回空、等待，还是等待一段时间后再失败？
 
-## 14.3 ArrayBlockingQueue
+### 14.3 ArrayBlockingQueue
 
 - 基于数组
 - 有界
@@ -1540,7 +1478,7 @@ class BoundedBuffer<T> {
 - 你明确希望限制队列容量
 - 想防止任务无限堆积
 
-## 14.4 LinkedBlockingQueue
+### 14.4 LinkedBlockingQueue
 
 - 基于链表
 - 可以有界，也可以近似无界
@@ -1549,7 +1487,7 @@ class BoundedBuffer<T> {
 
 > 如果你不给它明确容量，系统很容易用“堆积任务”掩盖真实过载。
 
-## 14.5 SynchronousQueue
+### 14.5 SynchronousQueue
 
 这是特别容易被误解的一种队列。它的特点不是“很快”，而是：
 
@@ -1566,13 +1504,13 @@ class BoundedBuffer<T> {
 
 这就是某些缓存线程池行为激进的根源。
 
-## 14.6 PriorityBlockingQueue 与 DelayQueue
+### 14.6 PriorityBlockingQueue 与 DelayQueue
 
-### PriorityBlockingQueue
+#### PriorityBlockingQueue
 
 按优先级出队，不保证 FIFO。
 
-### DelayQueue
+#### DelayQueue
 
 只有到期元素才能被取出。
 
@@ -1582,7 +1520,7 @@ class BoundedBuffer<T> {
 - 过期检查
 - 超时处理
 
-## 14.7 阻塞队列与线程池的关系
+### 14.7 阻塞队列与线程池的关系
 
 很多人把阻塞队列和线程池分开学，这是割裂的。
 
@@ -1604,7 +1542,7 @@ class BoundedBuffer<T> {
 
 ---
 
-# 第 15 章 ConcurrentHashMap 深入：JDK7 分段锁、JDK8 桶级并发、扩容与树化
+## 第 15 章 ConcurrentHashMap:full_moon:
 
 `ConcurrentHashMap` 是 JUC 中最值得深挖的容器之一。
 
@@ -1616,7 +1554,7 @@ class BoundedBuffer<T> {
 
 那还远远没真正理解它。
 
-## 15.1 为什么 HashMap 并发不安全
+### 15.1 为什么 HashMap 并发不安全
 
 `HashMap` 的问题不是一句“没加锁”就能概括。真正的问题是：它的内部结构在并发修改下会被破坏。
 
@@ -1638,7 +1576,7 @@ class BoundedBuffer<T> {
 
 > 容器内部结构都可能被破坏。
 
-## 15.2 JDK7 ConcurrentHashMap：Segment 分段锁到底是什么
+### 15.2 JDK7 ConcurrentHashMap：Segment 分段锁到底是什么
 
 JDK7 的核心设计是 **Segment**。
 
@@ -1657,7 +1595,7 @@ ConcurrentHashMap
 - 本质上带锁（继承/利用了锁机制）
 - 管理自己的一段桶数组
 
-### 为什么要分段
+#### 为什么要分段
 
 如果整个表只用一把总锁：
 
@@ -1669,25 +1607,25 @@ ConcurrentHashMap
 
 > 把全表竞争拆成多个段内竞争，提高并发度。
 
-### put 的大致思路（JDK7）
+#### put 的大致思路（JDK7）
 
 1. 先根据 hash 定位到某个 Segment
 2. 只对这个 Segment 加锁
 3. 在段内桶数组里继续定位桶
 4. 在桶对应链表中插入/更新
 
-### 分段锁的优点
+#### 分段锁的优点
 
 - 比全表大锁并发度高得多
 - 设计思路清晰
 
-### 分段锁的局限
+#### 分段锁的局限
 
 - 并发粒度上限受 Segment 数量影响
 - 顶层结构偏重
 - 扩容与统计等全局操作更复杂
 
-## 15.3 JDK8 ConcurrentHashMap：为什么去掉 Segment
+### 15.3 JDK8 ConcurrentHashMap：为什么去掉 Segment
 
 JDK8 对 `ConcurrentHashMap` 做了大改造，不再以 `Segment[]` 作为顶层结构，而更接近：
 
@@ -1706,13 +1644,13 @@ JDK8 对 `ConcurrentHashMap` 做了大改造，不再以 `Segment[]` 作为顶�
 
 这让锁粒度进一步细化。
 
-## 15.4 JDK8 put 的关键流程
+### 15.4 JDK8 put 的关键流程
 
-### 情况一：table 未初始化
+#### 情况一：table 未初始化
 
 先初始化数组。
 
-### 情况二：目标桶为空
+#### 情况二：目标桶为空
 
 尝试通过 CAS 把新节点放进去。
 
@@ -1720,7 +1658,7 @@ JDK8 对 `ConcurrentHashMap` 做了大改造，不再以 `Segment[]` 作为顶�
 
 > 无冲突时，JDK8 尽量避免加锁。
 
-### 情况三：目标桶不为空
+#### 情况三：目标桶不为空
 
 说明发生了哈希冲突。此时线程会围绕该桶进行同步控制，常见理解是：
 
@@ -1730,7 +1668,7 @@ JDK8 对 `ConcurrentHashMap` 做了大改造，不再以 `Segment[]` 作为顶�
 
 这里不是锁整个 map，也不是锁一个 segment，而是 **桶级别局部同步**。
 
-## 15.5 为什么说 JDK8 是 CAS + synchronized
+### 15.5 为什么说 JDK8 是 CAS + synchronized
 
 因为它不是纯无锁，也不是纯显式 Lock。
 
@@ -1741,7 +1679,7 @@ JDK8 对 `ConcurrentHashMap` 做了大改造，不再以 `Segment[]` 作为顶�
 
 > 能不锁就不锁；必须锁时只锁局部。
 
-## 15.6 树化：为什么链表会变成红黑树
+### 15.6 树化：为什么链表会变成红黑树
 
 哈希表理想情况下查询接近 O(1)，但如果很多 key 落到同一个桶里，链表会变长，查询退化到 O(n)。
 
@@ -1749,7 +1687,7 @@ JDK8 引入红黑树的目标是：
 
 > 当某个桶过于拥挤时，把局部查询复杂度从线性改善到对数级别。
 
-### 为什么不是一冲突就树化
+#### 为什么不是一冲突就树化
 
 因为红黑树维护成本更高，节点更重。对于小表或冲突还不严重的情况，更好的优化往往是先扩容，让元素重新分散。
 
@@ -1758,7 +1696,7 @@ JDK8 引入红黑树的目标是：
 - 桶内链表长度超过一定阈值
 - 且表整体容量也达到一定条件
 
-## 15.7 Forwarding Node 与扩容协作
+### 15.7 Forwarding Node 与扩容协作
 
 JDK8 的扩容很精彩，核心思想不是“一个线程停住全世界来搬家”，而是：
 
@@ -1772,7 +1710,7 @@ JDK8 的扩容很精彩，核心思想不是“一个线程停住全世界来搬
 
 > `ConcurrentHashMap` 不想靠一把总锁把所有线程停住再扩容，而是尽量让扩容过程也能在并发下继续推进。
 
-## 15.8 ConcurrentHashMap 的“线程安全”边界
+### 15.8 ConcurrentHashMap 的“线程安全”边界
 
 必须再强调一遍：
 
@@ -1794,7 +1732,7 @@ if (!map.containsKey(key)) {
 
 等原子复合方法。
 
-## 15.9 为什么不允许 null key / null value
+### 15.9 为什么不允许 null key / null value
 
 因为在并发环境下：
 
@@ -1812,13 +1750,13 @@ map.get(key) == null
 
 ---
 
-# 第 16 章 线程池全景：Executor、Executors、ThreadPoolExecutor、ScheduledThreadPoolExecutor、ForkJoinPool
+## 第 16 章 线程池
 
 线程池是 JUC 里最重要的工程主题之一。因为线程池不只是“复用线程”，而是：
 
 > 一个受控的任务执行系统。
 
-## 16.1 Executor 是什么
+### 16.1 Executor 是什么
 
 `Executor` 只有一个核心方法：
 
@@ -1837,7 +1775,7 @@ void execute(Runnable command)
 - 新线程跑
 - 线程池跑
 
-## 16.2 ExecutorService 比 Executor 多了什么
+### 16.2 ExecutorService 比 Executor 多了什么
 
 `ExecutorService` 在执行任务基础上增加了：
 
@@ -1848,7 +1786,7 @@ void execute(Runnable command)
 
 也就是说，它已经不是“只会跑任务”，而是能管理一组工作线程和任务。
 
-## 16.3 ThreadPoolExecutor：线程池的核心实现
+### 16.3 ThreadPoolExecutor：线程池的核心实现
 
 大多数工程里真正应该掌握的是 `ThreadPoolExecutor`。
 
@@ -1865,7 +1803,7 @@ public ThreadPoolExecutor(
     RejectedExecutionHandler handler)
 ```
 
-### 参数不是背名字，而是理解关系
+#### 参数不是背名字，而是理解关系
 
 - `corePoolSize`：常备处理能力
 - `maximumPoolSize`：高峰扩容上限
@@ -1874,7 +1812,7 @@ public ThreadPoolExecutor(
 - `threadFactory`：线程如何创建与命名
 - `handler`：系统过载时如何退让
 
-## 16.4 线程池真正的执行流程
+### 16.4 线程池真正的执行流程
 
 这是必须真正吃透的内容。
 
@@ -1887,7 +1825,7 @@ public ThreadPoolExecutor(
 
 这说明线程池不是“先排队再说”，而是在线程数、队列和拒绝之间做平衡。
 
-## 16.5 Executors 工厂方法到底是什么
+### 16.5 Executors 工厂方法到底是什么
 
 `Executors` 提供了一些快捷工厂：
 
@@ -1901,7 +1839,7 @@ public ThreadPoolExecutor(
 
 > 它们本质上对应了不同的线程/队列策略。
 
-## 16.6 FixedThreadPool
+### 16.6 FixedThreadPool
 
 特点：
 
@@ -1918,7 +1856,7 @@ public ThreadPoolExecutor(
 
 - 如果任务处理不过来，队列可能越来越长
 
-## 16.7 SingleThreadExecutor
+### 16.7 SingleThreadExecutor
 
 特点：
 
@@ -1933,7 +1871,7 @@ public ThreadPoolExecutor(
 
 本质上是用串行化换正确性和简单性。
 
-## 16.8 CachedThreadPool
+### 16.8 CachedThreadPool
 
 特点：
 
@@ -1956,7 +1894,7 @@ public ThreadPoolExecutor(
 - 线程可能快速膨胀
 - 对慢任务/阻塞任务很危险
 
-## 16.9 ScheduledThreadPoolExecutor
+### 16.9 ScheduledThreadPoolExecutor
 
 价值不只是“也有线程池”，而是：
 
@@ -1969,12 +1907,12 @@ public ThreadPoolExecutor(
 - `scheduleAtFixedRate`
 - `scheduleWithFixedDelay`
 
-### fixed rate 与 fixed delay 的区别
+#### fixed rate 与 fixed delay 的区别
 
 - `scheduleAtFixedRate`：按固定频率推进，更强调时间点
 - `scheduleWithFixedDelay`：上一次执行结束后再延迟，更强调执行间隔
 
-## 16.10 ForkJoinPool / WorkStealingPool
+### 16.10 ForkJoinPool / WorkStealingPool
 
 适合：
 
@@ -1989,7 +1927,7 @@ public ThreadPoolExecutor(
 
 ---
 
-# 第 17 章 线程池参数设计与线上问题：不是会配，而是会控制风险
+## 第 17 章 线程池参数设计
 
 线程池最容易被学成“七参数背诵题”。这远远不够。
 
@@ -1997,7 +1935,7 @@ public ThreadPoolExecutor(
 
 > 流量上来时，系统会怎么退化？这种退化是否可控？
 
-## 17.1 为什么不建议无脑用 Executors 默认配置
+### 17.1 为什么不建议无脑用 Executors 默认配置
 
 不是因为它“不能用”，而是因为：
 
@@ -2007,7 +1945,7 @@ public ThreadPoolExecutor(
 
 工程里更推荐直接显式使用 `ThreadPoolExecutor`。
 
-## 17.2 corePoolSize 到底怎么定
+### 17.2 corePoolSize 到底怎么定
 
 它代表平时常备火力。
 
@@ -2033,7 +1971,7 @@ public ThreadPoolExecutor(
 
 但重点不是死记公式，而是压测与监控。
 
-## 17.3 队列容量怎么定
+### 17.3 队列容量怎么定
 
 队列本质上是在做一件事：
 
@@ -2055,7 +1993,7 @@ public ThreadPoolExecutor(
 - 超过这个时间还有意义吗？
 - 堆积是否会拖垮系统？
 
-## 17.4 maximumPoolSize 怎么看
+### 17.4 maximumPoolSize 怎么看
 
 最大线程数不是“越大越能扛住高并发”。
 
@@ -2070,7 +2008,7 @@ public ThreadPoolExecutor(
 
 > 你允许线程池在高峰时额外借多少处理能力。
 
-## 17.5 拒绝策略如何选
+### 17.5 拒绝策略如何选
 
 ### AbortPolicy
 
@@ -2096,7 +2034,7 @@ public ThreadPoolExecutor(
 
 适合少数业务明确允许丢弃场景。普通业务慎用，因为静默丢任务很危险。
 
-## 17.6 为什么业务线程池要隔离
+### 17.6 为什么业务线程池要隔离
 
 一个常见线上事故模式：
 
@@ -2116,7 +2054,7 @@ public ThreadPoolExecutor(
 
 > 把故障传播范围限制在局部。
 
-## 17.7 线程池监控看什么
+### 17.7 线程池监控看什么
 
 至少关注：
 
@@ -2132,13 +2070,13 @@ public ThreadPoolExecutor(
 
 ---
 
-# 第 18 章 Future、FutureTask、CompletableFuture：从异步结果到异步编排
+## 第 18 章 Future、FutureTask、CompletableFuture
 
 并发不只是“多个线程同时跑”，还涉及一个关键问题：
 
 > 任务未来完成后，结果怎么拿？多个异步结果怎么组织？异常和超时怎么处理？
 
-## 18.1 Future：先提交，结果以后拿
+### 18.1 Future：先提交，结果以后拿
 
 `Future` 表示一个未来结果。
 
@@ -2155,7 +2093,7 @@ Future<Integer> future = pool.submit(() -> 100);
 Integer result = future.get();
 ```
 
-## 18.2 Future 的问题
+### 18.2 Future 的问题
 
 `Future` 最大的问题不是“不好用”，而是它更偏“手动拉结果”，不擅长描述复杂依赖关系。
 
@@ -2168,7 +2106,7 @@ Integer result = future.get();
 
 只靠 `Future` 会写得很笨重。
 
-## 18.3 FutureTask：Runnable 与 Future 的桥梁
+### 18.3 FutureTask：Runnable 与 Future 的桥梁
 
 `FutureTask` 同时实现了：
 
@@ -2179,38 +2117,38 @@ Integer result = future.get();
 
 这也是理解“任务”和“结果句柄”解耦的好例子。
 
-## 18.4 CompletableFuture：重点不是异步，而是编排
+### 18.4 CompletableFuture：重点不是异步，而是编排
 
 `CompletableFuture` 真正强大的地方不是“能异步”，而是：
 
 > 能把异步任务之间的依赖关系、组合关系、异常链、超时与执行器边界表达出来。
 
-### thenApply
+#### thenApply
 
 拿到上一步结果，做转换。
 
-### thenAccept
+#### thenAccept
 
 拿到结果后消费，但不返回新值。
 
-### thenRun
+#### thenRun
 
 不关心结果，只在后续执行一个动作。
 
-### thenCompose
+#### thenCompose
 
 前一个异步任务的结果决定后一个异步任务。适合串联依赖。
 
-### thenCombine
+#### thenCombine
 
 两个互相独立的异步任务完成后合并结果。适合并行汇合。
 
-### allOf / anyOf
+#### allOf / anyOf
 
 - `allOf`：所有任务完成
 - `anyOf`：任意一个完成即可
 
-## 18.5 异常处理必须认真对待
+### 18.5 异常处理必须认真对待
 
 `CompletableFuture` 的异常处理不是“可选高级用法”，而是必需品。
 
@@ -2226,7 +2164,7 @@ Integer result = future.get();
 - `handle`：无论成功失败都可处理，并能改结果
 - `whenComplete`：观察结果，不改变最终值
 
-## 18.6 为什么默认线程池不能无脑用
+### 18.6 为什么默认线程池不能无脑用
 
 很多异步方法如果不传执行器，会使用默认异步执行器。这样做的问题是：
 
@@ -2236,7 +2174,7 @@ Integer result = future.get();
 
 工程里，对核心链路最好显式指定自定义线程池。
 
-## 18.7 超时控制的重要性
+### 18.7 超时控制的重要性
 
 现实业务中的异步编排，最怕“链上某一步卡住”。
 
@@ -2254,7 +2192,7 @@ Integer result = future.get();
 
 这对工程上很有帮助。
 
-## 18.8 CompletableFuture 的真正难点
+### 18.8 CompletableFuture 的真正难点
 
 不是 API 名字，而是边界管理：
 
@@ -2270,13 +2208,13 @@ Integer result = future.get();
 
 ---
 
-# 第 19 章 ForkJoin 框架与工作窃取
+## 第 19 章 ForkJoin & 工作窃取
 
 `ForkJoin` 不是普通线程池的“花哨版”，它更擅长一类特定问题：
 
 > 把大任务递归地拆成多个小任务并行执行，再把结果合并。
 
-## 19.1 适合的场景
+### 19.1 适合的场景
 
 - 大数组求和
 - 分治排序
@@ -2284,14 +2222,14 @@ Integer result = future.get();
 - 树/图的分块处理
 - CPU 密集型可拆分任务
 
-## 19.2 核心思想：fork / join
+### 19.2 核心思想：fork / join
 
 - `fork`：拆分子任务
 - `join`：等待子任务并合并结果
 
 它很像分治算法的并行版本。
 
-## 19.3 为什么工作窃取有用
+### 19.3 为什么工作窃取有用
 
 普通线程池往往是多个线程从公共队列取任务。`ForkJoinPool` 更偏向：
 
@@ -2305,7 +2243,7 @@ Integer result = future.get();
 - 提高线程利用率
 - 更适合细粒度分治任务
 
-## 19.4 不适合什么
+### 19.4 不适合什么
 
 别用 `ForkJoin` 去处理：
 
@@ -2319,11 +2257,11 @@ Integer result = future.get();
 
 ---
 
-# 第 20 章 并发设计模式：线程封闭、不可变、生产者消费者、背压、隔离
+## 第 20 章 并发设计模式
 
 如果只学工具，不学设计思路，很容易“拿着锤子到处找钉子”。
 
-## 20.1 线程封闭（Thread Confinement）
+### 20.1 线程封闭（Thread Confinement）
 
 最好的并发问题，有时不是“把共享状态同步好”，而是：
 
@@ -2342,7 +2280,7 @@ Integer result = future.get();
 
 但要注意 `ThreadLocal` 在线程池里容易造成上下文污染或内存泄漏，使用完最好及时清理。
 
-## 20.2 不可变对象
+### 20.2 不可变对象
 
 如果对象创建后就不变，那么多线程共享它通常最简单。
 
@@ -2358,7 +2296,7 @@ Integer result = future.get();
 - 状态天然一致
 - 更容易安全发布
 
-## 20.3 生产者消费者
+### 20.3 生产者消费者
 
 这是最常见的并发协作模型：
 
@@ -2372,7 +2310,7 @@ Integer result = future.get();
 - 解耦上下游速度
 - 容易做限流和容量控制
 
-## 20.4 背压（Backpressure）
+### 20.4 背压（Backpressure）
 
 高并发系统里一个非常重要的思想是：
 
@@ -2388,7 +2326,7 @@ Integer result = future.get();
 
 没有背压，系统只是把问题延后，不会消失。
 
-## 20.5 隔离（Bulkhead / Isolation）
+### 20.5 隔离（Bulkhead / Isolation）
 
 并发设计最怕一个慢点拖死全局。
 
@@ -2404,11 +2342,11 @@ Integer result = future.get();
 
 ---
 
-# 第 21 章 死锁、活锁、饥饿、伪共享与并发故障排查
+## 第 21 章 并发问题
 
 并发问题不只有“线程安全”一种。很多时候程序的值没错，但性能和可用性已经崩了。
 
-## 21.1 死锁
+### 21.1 死锁
 
 死锁是互相等待资源，谁也走不下去。
 
@@ -2419,20 +2357,20 @@ Integer result = future.get();
 - 不可剥夺
 - 循环等待
 
-### 避免思路
+#### 避免思路
 
 - 固定加锁顺序
 - 减少锁嵌套
 - 使用 `tryLock` + 超时
 - 缩小临界区
 
-## 21.2 活锁
+### 21.2 活锁
 
 线程没有阻塞，但一直互相让步，谁也推进不了。
 
 例如两个线程都检测到冲突，然后都“很礼貌地”让一步，结果一直重复。
 
-## 21.3 饥饿
+### 21.3 饥饿
 
 某些线程长期拿不到资源。
 
@@ -2442,7 +2380,7 @@ Integer result = future.get();
 - 线程优先级不合理
 - 热点任务长期霸占资源
 
-## 21.4 伪共享
+### 21.4 伪共享
 
 伪共享不是 Java 语义层 bug，而是缓存行层面的性能问题。
 
@@ -2454,7 +2392,7 @@ Integer result = future.get();
 
 在高性能计数器、并发框架底层实现里，这个问题很重要。`LongAdder` 等设计在一定程度上就是在避免热点共享。
 
-## 21.5 并发问题怎么排查
+### 21.5 并发问题怎么排查
 
 至少要会这些方向：
 
@@ -2494,362 +2432,3 @@ Integer result = future.get();
 - GC 暂停
 
 所以不能只盯线程。
-
----
-
-# 第 22 章 高频面试题：不是背答案，而是按原理回答
-
-这一章不追求“标准答案模板”，而是给你按原理回答的思路。
-
-## 22.1 synchronized 和 ReentrantLock 的区别
-
-正确回答方向：
-
-1. 两者都可重入，都能保证互斥与同步
-2. `synchronized` 是语言级内置同步结构，语法简单，自动释放
-3. `ReentrantLock` 是显式锁，功能更灵活：
-   - 可中断获取
-   - 可尝试获取
-   - 可超时获取
-   - 支持多个 Condition
-   - 支持公平策略
-4. 底层上 `ReentrantLock` 建立在 AQS 之上；`synchronized` 依赖 monitor 与 HotSpot 锁实现
-
-## 22.2 volatile 能保证原子性吗
-
-不能。
-
-要说清原因：
-
-- volatile 解决可见性和关键有序性
-- `count++` 之类复合动作仍会被别的线程插入
-- 原子性需要锁或 CAS
-
-## 22.3 为什么 double-check singleton 需要 volatile
-
-因为 `new` 不是不可拆分的一步。需要防止：
-
-- 引用先发布
-- 对象后初始化
-
-volatile 通过建立写/读边界约束，避免其他线程拿到半初始化对象。
-
-## 22.4 AQS 是什么
-
-AQS 是一个同步器框架，不是一个具体锁。它解决：
-
-- 原子状态管理
-- 失败线程排队
-- 阻塞/唤醒机制
-
-上层同步器只需定义：
-
-- state 的语义
-- 获取/释放规则
-
-## 22.5 ConcurrentHashMap 为什么线程安全
-
-要分版本讲：
-
-- JDK7：Segment 分段锁
-- JDK8：空桶 CAS，冲突时桶级同步，支持树化和并发扩容协作
-
-同时强调：
-
-- 单个操作线程安全
-- 复合逻辑不一定自动安全
-
-## 22.6 线程池为什么不建议无脑用 Executors
-
-不是因为工厂方法“绝对错误”，而是因为：
-
-- 容量边界容易被隐藏
-- 队列/线程策略不易感知
-- 线上更需要显式配置与监控
-
-## 22.7 CountDownLatch 与 CyclicBarrier 的区别
-
-- `CountDownLatch`：一个或多个线程等待一些任务完成
-- `CyclicBarrier`：一组线程互相等待到齐
-
-重点讲模型差异，而不是背名称。
-
-## 22.8 CompletableFuture 比 Future 强在哪
-
-Future 更像“结果句柄”，CompletableFuture 更像“异步流程编排器”。
-
-它能表达：
-
-- 串联依赖
-- 并行汇合
-- 异常链
-- 超时
-- 显式执行器边界
-
-## 22.9 读写锁什么时候比互斥锁更好
-
-当：
-
-- 读远多于写
-- 读逻辑较轻
-- 写相对少
-
-此时共享读可以提升吞吐。
-
-但如果写很多，读写锁不一定划算。
-
-## 22.10 LongAdder 为什么高并发下可能比 AtomicLong 更快
-
-因为它把单热点更新拆散到多个槽位，降低 CAS 冲突。代价是空间和汇总成本。
-
----
-
-# 第 23 章 学习路径与实践路线图
-
-JUC 不适合按类名死啃，更合理的路线是：
-
-## 第一阶段：问题意识
-
-先把这三件事吃透：
-
-- 可见性
-- 原子性
-- 有序性
-
-配套学习：
-
-- JMM
-- happens-before
-- volatile
-- synchronized
-
-## 第二阶段：同步原语
-
-深入：
-
-- CAS / 原子类
-- AQS
-- ReentrantLock / Condition
-- CountDownLatch / Semaphore / ReadWriteLock
-
-目标：从“会用工具”升级到“能解释工具为什么这样设计”。
-
-## 第三阶段：并发容器与线程池
-
-深入：
-
-- BlockingQueue
-- ConcurrentHashMap
-- ThreadPoolExecutor
-- ScheduledThreadPoolExecutor
-- ForkJoinPool
-
-目标：具备工程并发能力，而不是只会 demo。
-
-## 第四阶段：异步编排与架构控制
-
-深入：
-
-- Future / CompletableFuture
-- 超时/降级/背压
-- 线程池隔离
-- 故障排查
-
-目标：让并发代码能够进入真实项目。
-
-## 第五阶段：自己做实验
-
-建议至少手写这些练习：
-
-1. `volatile` 停机标记与非 volatile 对比
-2. `AtomicInteger` vs `LongAdder` 高并发计数实验
-3. `ReentrantLock + Condition` 写一个有界缓冲区
-4. 对比不同线程池队列与拒绝策略
-5. `CompletableFuture` 聚合多个下游调用并做超时兜底
-6. 写一个简化版 AQS 风格同步器（哪怕只是思维实验）
-
-并发知识如果不动手验证，很容易一直停留在“像懂了”。
-
----
-
-# 附录 A 推荐阅读与官方资料
-
-## 官方文档（建议作为第一手语义来源）
-
-1. Java Language Specification, Chapter 17 Threads and Locks
-2. Java 21 API 文档：
-   - `ThreadPoolExecutor`
-   - `ExecutorService`
-   - `Executors`
-   - `ConcurrentHashMap`
-   - `CompletableFuture`
-   - `AbstractQueuedSynchronizer`
-   - `ReentrantReadWriteLock`
-3. OpenJDK / JEP 资料：
-   - JEP 374（biased locking 相关）
-   - OpenJDK 源码中的 `ConcurrentHashMap`、AQS、锁实现
-
-## 经典书籍
-
-1. **Java Concurrency in Practice**
-   - 并发编程领域经典，最适合建立整体思想。
-2. **Java 并发编程的艺术**
-   - 对 JMM、锁、AQS、线程池等有较系统梳理。
-3. **Effective Java**
-   - 其中关于共享可变状态、并发设计的部分非常值得反复读。
-4. **深入理解 Java 虚拟机**
-   - 帮你理解 HotSpot、对象头、monitor、锁优化、内存模型实现背景。
-
-## 阅读建议
-
-先用官方文档校准语义，再用书建立整体视图，再用源码理解实现细节。顺序不要反过来。
-
----
-
-# 附录 B 一个建议长期保留的线程池模板
-
-```java
-import java.util.concurrent.*;
-
-public class ThreadPoolTemplate {
-    public static ExecutorService newBizPool(
-            int core,
-            int max,
-            int queueSize,
-            String prefix) {
-        return new ThreadPoolExecutor(
-                core,
-                max,
-                60L,
-                TimeUnit.SECONDS,
-                new ArrayBlockingQueue<>(queueSize),
-                new ThreadFactory() {
-                    private final ThreadFactory delegate = Executors.defaultThreadFactory();
-                    private int idx = 1;
-
-                    @Override
-                    public Thread newThread(Runnable r) {
-                        Thread t = delegate.newThread(r);
-                        t.setName(prefix + "-" + idx++);
-                        return t;
-                    }
-                },
-                new ThreadPoolExecutor.CallerRunsPolicy()
-        );
-    }
-
-    public static void main(String[] args) {
-        ExecutorService pool = newBizPool(4, 8, 100, "biz-pool");
-        try {
-            for (int i = 0; i < 20; i++) {
-                int taskId = i;
-                pool.submit(() -> {
-                    System.out.println(Thread.currentThread().getName() + " execute task " + taskId);
-                });
-            }
-        } finally {
-            pool.shutdown();
-        }
-    }
-}
-```
-
-这个模板的价值不是“可直接上线”，而是它显式暴露了最重要的控制点：
-
-- 核心线程数
-- 最大线程数
-- 队列容量
-- 线程命名
-- 拒绝策略
-
----
-
-# 附录 C 一个建议长期保留的 CompletableFuture 聚合模板
-
-```java
-import java.util.concurrent.*;
-
-public class CompletableFutureTemplate {
-
-    public static void main(String[] args) {
-        ExecutorService pool = new ThreadPoolExecutor(
-                4, 8, 60, TimeUnit.SECONDS,
-                new LinkedBlockingQueue<>(100),
-                Executors.defaultThreadFactory(),
-                new ThreadPoolExecutor.AbortPolicy()
-        );
-
-        try {
-            CompletableFuture<String> userFuture = CompletableFuture
-                    .supplyAsync(() -> {
-                        sleep(100);
-                        return "user-info";
-                    }, pool)
-                    .orTimeout(300, TimeUnit.MILLISECONDS)
-                    .exceptionally(ex -> "user-fallback");
-
-            CompletableFuture<String> orderFuture = CompletableFuture
-                    .supplyAsync(() -> {
-                        sleep(150);
-                        return "order-info";
-                    }, pool)
-                    .orTimeout(300, TimeUnit.MILLISECONDS)
-                    .exceptionally(ex -> "order-fallback");
-
-            CompletableFuture<String> couponFuture = CompletableFuture
-                    .supplyAsync(() -> {
-                        sleep(80);
-                        return "coupon-info";
-                    }, pool)
-                    .orTimeout(300, TimeUnit.MILLISECONDS)
-                    .exceptionally(ex -> "coupon-fallback");
-
-            CompletableFuture<String> result = userFuture
-                    .thenCombine(orderFuture, (u, o) -> u + " | " + o)
-                    .thenCombine(couponFuture, (uo, c) -> uo + " | " + c)
-                    .exceptionally(ex -> "global-fallback");
-
-            System.out.println(result.join());
-        } finally {
-            pool.shutdown();
-        }
-    }
-
-    private static void sleep(long ms) {
-        try {
-            Thread.sleep(ms);
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-        }
-    }
-}
-```
-
-这个模板体现了几件事：
-
-- 显式线程池边界
-- 单任务超时
-- 单任务局部兜底
-- 聚合结果
-- 全局异常收口
-
-这才是 `CompletableFuture` 在工程里真正该有的姿势。
-
----
-
-# 结语
-
-JUC 最容易学坏的方式，是把它学成：
-
-- 类名表
-- API 表
-- 面试题表
-
-真正有效的方式是把它学成一套思维：
-
-1. 先看共享状态有没有同步语义保护
-2. 再看当前工具到底在解决可见性、原子性、有序性还是线程协作
-3. 再看这套机制的性能代价和工程边界
-4. 最后再决定该不该用、怎么用
-
-当你开始习惯这样思考时，JUC 才算真正学进去了。
