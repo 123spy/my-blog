@@ -1,6 +1,11 @@
 # JUC 学习手册
 
 > 参考《Java 并发编程的艺术》的主线，结合常见 JUC 课程笔记的讲法，对原笔记做重构、补漏与扩展。
+>
+> 建议阅读顺序：
+> 1. 先看基础、JMM、HB、volatile、synchronized
+> 2. 再看 AQS、Lock、通信、同步器、线程池、Future
+> 3. 最后看 ThreadLocal、选型、排查
 
 ![总览图](images/01-overview.png)
 
