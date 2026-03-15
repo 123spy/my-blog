@@ -235,7 +235,7 @@ class Bad {
 
 没有答案，就说明发布方式还不够扎实。
 
-## HB
+## happens-before
 
 如果说 JMM 里只能记一个最重要的概念，那就是 **happens-before**。
 
